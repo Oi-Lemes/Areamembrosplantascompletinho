@@ -1,0 +1,72 @@
+// Caminho: backend/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  hotmartId String?  @unique
+  status    String?  @default("pending")
+
+  // --- CAMPOS CORRIGIDOS E ADICIONADOS ---
+  password  String?
+  phone     String?  @unique // Login via telefone
+  cpf       String?  // Útil para match
+  plan          String   @default("basic")
+  hasLiveAccess Boolean  @default(false)
+  hasNinaAccess Boolean  @default(false)
+  hasWalletAccess Boolean @default(false)
+
+  // --- RELACIONAMENTOS ---
+  magicLinks MagicLink[]
+  progressos Progresso[]
+}
+
+model Modulo {
+  id          Int      @id @default(autoincrement())
+  nome        String
+  description String
+  ordem       Int
+  imagem      String
+  aulas       Aula[]
+}
+
+model Aula {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  descricao  String
+  videoUrl   String
+  ordem      Int
+  moduloId   Int
+  modulo     Modulo   @relation(fields: [moduloId], references: [id])
+  progressos Progresso[]
+}
+
+model Progresso {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  aulaId    Int
+  concluida Boolean @default(false)
+  aula      Aula    @relation(fields: [aulaId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, aulaId])
+}
+
+model MagicLink {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}

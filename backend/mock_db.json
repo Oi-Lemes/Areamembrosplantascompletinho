@@ -1,0 +1,20 @@
+{
+  "progresso": [
+    "1_1",
+    "1_2",
+    "1_3",
+    "1_4"
+  ],
+  "users": [
+    {
+      "id": 1,
+      "email": "aluno@exemplo.com",
+      "name": "Aluno Modelo",
+      "plan": "basic",
+      "password": "$2b$10$ExemploHashDeSenha",
+      "hasLiveAccess": false,
+      "hasNinaAccess": false,
+      "hasWalletAccess": false
+    }
+  ]
+}

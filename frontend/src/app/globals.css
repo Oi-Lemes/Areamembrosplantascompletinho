@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-image: linear-gradient(rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.75)), url('/img/fundo.png');
+  background-size: cover;
+  background-position: center center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-color: #0a0a0a;
+}
+
+/* --- ANIMAÇÕES FINAIS PARA ESCRITA CONTÍNUA --- */
+
+/* Animação que "desenha" o contorno do texto */
+@keyframes handwriting-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Animação que preenche o texto e adiciona o brilho no final */
+@keyframes fill-and-glow {
+  to {
+    fill: url(#titleGradient);
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  }
+}
+
+.handwriting-title {
+  font-family: var(--font-great-vibes), cursive;
+  font-size: 80px;
+  
+  /* Começa sem cor de preenchimento e sem brilho */
+  fill: transparent;
+  filter: none;
+  
+  /* Contorno que será animado */
+  stroke: white; 
+  stroke-width: 0.5px;
+  stroke-dasharray: 2000; /* Um valor grande o suficiente para cobrir todo o texto */
+  stroke-dashoffset: 2000; /* Começa com o contorno "invisível" */
+  
+  /* Aplica as duas animações em sequência */
+  animation: 
+    handwriting-draw 6s ease-out forwards, /* 1º: Desenha o contorno por 6 segundos */
+    fill-and-glow 1s ease-out 6s forwards;   /* 2º: Preenche e adiciona brilho APÓS 6 segundos */
+}
+/* Caminho: frontend/src/app/globals.css */
+
+/* Adicione estas linhas no final do ficheiro */
+.prose {
+    color: inherit;
+}
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.prose li {
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+}
+.prose strong {
+    font-weight: bold;
+}
