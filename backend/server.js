@@ -185,10 +185,20 @@ app.post('/webhook/paradise', async (req, res) => {
         }
 
         if (eventType === 'purchase.approved' || eventType === 'paid' || eventType === 'approved') {
-            const email = client.email;
+            let email = client.email;
             const name = client.name;
             const phone = client.phone ? client.phone.replace(/\D/g, '') : null;
             const cpf = client.cpf || client.document;
+
+            if (email) {
+                // Prevent Unique Constraint Fix (P2002)
+                // If email exists on ANOTHER phone, we ignore it for this new user to avoid crash.
+                const userWithEmail = await prisma.user.findFirst({ where: { email: email } });
+                if (userWithEmail && userWithEmail.phone !== phone) {
+                    console.log(`[WEBHOOK] Email ${email} em uso por ${userWithEmail.phone}. Gerando alias.`);
+                    email = `${phone}@conflict.verificar`;
+                }
+            }
 
             if (!phone) {
                 console.warn('[WEBHOOK] Telefone não recebido. Ignorando criação por enquanto.');
