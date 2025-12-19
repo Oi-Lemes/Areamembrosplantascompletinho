@@ -100,14 +100,10 @@ export default function AulaPage() {
 
   const isModuloConcluido = modulo ? modulo.aulas.every(a => aulasConcluidas.includes(a.id)) : false;
 
-  useEffect(() => {
-    if (isUltimaAulaDoModulo && isModuloConcluido) {
-      const timer = setTimeout(() => {
-        router.push('/dashboard');
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isModuloConcluido, isUltimaAulaDoModulo, router]);
+  // --- REMOVIDO: Lógica de redirect automático ao terminar módulo estava expulsando alunos ---
+  // useEffect(() => {
+  //   if (isUltimaAulaDoModulo && isModuloConcluido) { ... }
+  // }, ...);
 
   const handleMarcarComoConcluida = async () => {
     if (!aulaAtual) return;
@@ -149,12 +145,10 @@ export default function AulaPage() {
       } else {
         const primeiraAulaNaoConcluida = modulo.aulas.find(a => !aulasConcluidas.includes(a.id));
         if (primeiraAulaNaoConcluida) {
-          // --- MUDANÇA 2: A lógica de delay foi adicionada aqui ---
           setFeedbackMessage(`Aguarde... você precisa concluir a aula "${primeiraAulaNaoConcluida.nome}".`);
           setIsRedirecting(true); // Desativa os botões
           setTimeout(() => {
             router.push(`/modulo/${moduleId}/aula/${primeiraAulaNaoConcluida.id}`);
-            // O estado será resetado quando a nova página carregar
           }, 3000); // Delay de 3 segundos
         } else {
           router.push('/dashboard');
@@ -194,56 +188,155 @@ export default function AulaPage() {
       <main className="space-y-6">
 
         <div>
-          {/* ... (código do vídeo permanece o mesmo) ... */}
+          {/* VIDEO CONTAINER CLEANUP: Removido shadow, rounded e overflow para 'retângulo puro' */}
           {aulaAtual.videoUrl ? (
             isVideo ? (
-              <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+              <div className="w-full aspect-video bg-black">
                 <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} allow="autoplay; fullscreen; picture-in-picture" frameBorder="0" scrolling="no" className="w-full h-full"></iframe>
               </div>
             ) : (
-              <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} frameBorder="0" className="w-full h-[75vh] rounded-lg shadow-lg"></iframe>
+              <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} frameBorder="0" className="w-full h-[75vh] bg-white"></iframe>
             )
           ) : (
-            <div className="flex items-center justify-center w-full aspect-video bg-gray-900 rounded-lg">
+            <div className="flex items-center justify-center w-full aspect-video bg-gray-900">
               <p className="text-gray-400">Conteúdo indisponível para esta aula.</p>
             </div>
           )}
         </div>
+        if (!aulaAtual) return;
+        setFeedbackMessage(null);
+        const token = localStorage.getItem('token');
+        if (!token) return;
 
-        {isUltimaAulaDoModulo && isModuloConcluido && (
-          <div className="bg-green-900/50 border border-green-700 text-green-300 px-4 py-3 rounded-lg text-center">
-            <h3 className="font-bold text-lg">Parabéns!</h3>
-            <p className="text-sm">Você concluiu o {modulo.nome}. Redirecionando para o Início...</p>
-          </div>
-        )}
-        {feedbackMessage && (
-          <div className={`px-4 py-3 rounded-lg text-center ${isRedirecting ? 'bg-yellow-900/50 border border-yellow-700 text-yellow-300' : ''}`}>
-            <p>{feedbackMessage}</p>
-          </div>
-        )}
+        try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+        await fetch(`${backendUrl}/aulas/concluir`, {
+          method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({aulaId: aulaAtual.id })
+      });
 
-        {/* --- MUDANÇA 3: Novo layout e estilo para os botões --- */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700">
-          <button
-            onClick={handleMarcarComoConcluida}
-            disabled={isRedirecting}
-            className={`w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none
+        // Força evento de storage para atualizar o Dashboard na mesma aba/outras abas
+        const now = Date.now().toString();
+        localStorage.setItem('aula_concluida', now);
+        window.dispatchEvent(new Event('storage'));
+    } catch (error) {
+          console.error("Erro ao marcar aula como concluída:", error);
+    }
+  };
+
+  const handleProximo = () => {
+          setFeedbackMessage(null);
+
+        if (modulo && !isUltimaAulaDoModulo) {
+      const proximaAula = modulo.aulas[aulaIndex + 1];
+        router.push(`/modulo/${moduleId}/aula/${proximaAula.id}`);
+    } else if (modulo) {
+      const moduloCompleto = modulo.aulas.every(a => aulasConcluidas.includes(a.id));
+
+        if (moduloCompleto) {
+          router.push('/dashboard');
+      } else {
+        const primeiraAulaNaoConcluida = modulo.aulas.find(a => !aulasConcluidas.includes(a.id));
+        if (primeiraAulaNaoConcluida) {
+          // --- MUDANÇA 2: A lógica de delay foi adicionada aqui ---
+          setFeedbackMessage(`Aguarde... você precisa concluir a aula "${primeiraAulaNaoConcluida.nome}".`);
+        setIsRedirecting(true); // Desativa os botões
+          setTimeout(() => {
+          router.push(`/modulo/${moduleId}/aula/${primeiraAulaNaoConcluida.id}`);
+            // O estado será resetado quando a nova página carregar
+          }, 3000); // Delay de 3 segundos
+        } else {
+          router.push('/dashboard');
+        }
+      }
+    }
+  };
+
+        const isVideo = aulaAtual?.videoUrl?.includes('wistia.com');
+
+        if (isLoading) {
+    return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
+  }
+
+        if (error || !modulo || !aulaAtual) {
+    return (
+        <div className="text-center p-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-red-400">Ocorreu um Erro</h1>
+          <p className="mt-2 text-white">{error || "Não foi possível carregar as informações da aula."}</p>
+          <Link href="/dashboard" className="text-blue-400 hover:underline mt-4 block">
+            Voltar para o Dashboard
+          </Link>
+        </div>
+        );
+  }
+
+        return (
+        <div className="w-full max-w-4xl">
+          <nav className="mb-4 md:mb-6 mt-12 md:mt-0">
+            <Link href={`/modulo/${moduleId}`} className="text-blue-400 hover:underline text-sm md:text-base">
+              &larr; Voltar para as aulas do {modulo.nome}
+            </Link>
+          </nav>
+          <header className="mb-4 md:mb-6">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">{aulaAtual.nome}</h1>
+          </header>
+          <main className="space-y-6">
+
+            <div>
+              {/* ... (código do vídeo permanece o mesmo) ... */}
+              {aulaAtual.videoUrl ? (
+                isVideo ? (
+                  <div className="w-full aspect-video rounded-lg overflow-hidden shadow-lg">
+                    <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} allow="autoplay; fullscreen; picture-in-picture" frameBorder="0" scrolling="no" className="w-full h-full"></iframe>
+                  </div>
+                ) : (
+                  <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} frameBorder="0" className="w-full h-[75vh] rounded-lg shadow-lg"></iframe>
+                )
+              ) : (
+                <div className="flex items-center justify-center w-full aspect-video bg-gray-900 rounded-lg">
+                  <p className="text-gray-400">Conteúdo indisponível para esta aula.</p>
+                </div>
+              )}
+            </div>
+
+            {isUltimaAulaDoModulo && isModuloConcluido && (
+              <div className="bg-green-900/50 border border-green-700 text-green-300 px-4 py-3 rounded-lg text-center">
+                <h3 className="font-bold text-lg">Parabéns!</h3>
+                <p className="text-sm">Você concluiu o {modulo.nome}. Redirecionando para o Início...</p>
+              </div>
+            )}
+            {feedbackMessage && (
+              <div className={`px-4 py-3 rounded-lg text-center ${isRedirecting ? 'bg-yellow-900/50 border border-yellow-700 text-yellow-300' : ''}`}>
+                <p>{feedbackMessage}</p>
+              </div>
+            )}
+
+            {/* --- MUDANÇA 3: Novo layout e estilo para os botões --- */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700">
+              <button
+                onClick={handleMarcarComoConcluida}
+                disabled={isRedirecting}
+                className={`w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none
                     ${isConcluida ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}
                 `}
-          >
-            {isConcluida && <CheckIcon />}
-            <span>{isConcluida ? 'Aula Concluída' : 'Marcar como Concluída'}</span>
-          </button>
-          <button
-            onClick={handleProximo}
-            disabled={(isUltimaAulaDoModulo && isModuloConcluido) || isRedirecting}
-            className="w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
-          >
-            <span>{isUltimaAulaDoModulo ? 'Finalizar Módulo' : 'Próxima Aula'}</span>
-            {!isUltimaAulaDoModulo && <ArrowRightIcon />}
-          </button>
+              >
+                {isConcluida && <CheckIcon />}
+                <span>{isConcluida ? 'Aula Concluída' : 'Marcar como Concluída'}</span>
+              </button>
+              <button
+                onClick={handleProximo}
+                disabled={(isUltimaAulaDoModulo && isModuloConcluido) || isRedirecting}
+                className="w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
+              >
+                <span>{isUltimaAulaDoModulo ? 'Finalizar Módulo' : 'Próxima Aula'}</span>
+                {!isUltimaAulaDoModulo && <ArrowRightIcon />}
+              </button>
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
-  );
+        );
 }
