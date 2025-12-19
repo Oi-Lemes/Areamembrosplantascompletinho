@@ -6,6 +6,8 @@ import { createContext, useState, useContext, useEffect, ReactNode, Dispatch, Se
 // Define a estrutura (o "formato") dos dados do utilizador que vamos receber do backend
 // Exportamos o 'User' para ser usado no nosso novo componente
 export interface User {
+  id: number; // Adicionado ID
+  phone: string; // Adicionado Phone
   email: string;
   name: string;
   plan: 'basic' | 'premium' | 'ultra';
