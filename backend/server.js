@@ -471,8 +471,7 @@ app.get('/progresso-modulos', authenticateToken, async (req, res) => {
     res.json(resultado);
 });
 
-// --- ROTA DE GERAÇÃO DE CERTIFICADO (PDFKIT - VERSÃO LEVE & ESTÁVEL) ---
-// Substitui o Puppeteer mudando para PDFKit para garantir deploy no Render Gratuito
+// --- ROTA DE GERAÇÃO DE CERTIFICADO (PDFKIT - LAYOUT PREMIUM HARDCODED) ---
 app.post('/gerar-certificado', authenticateToken, async (req, res) => {
     const { safeStudentName } = req.body;
     const studentName = safeStudentName ? safeStudentName.replace(/_/g, ' ').toUpperCase() : req.user.name.toUpperCase();
@@ -481,121 +480,185 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         const doc = new PDFDocument({
             layout: 'landscape',
             size: 'A4',
-            margin: 0
+            margin: 0,
+            autoFirstPage: true
         });
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename=certificado_${req.user.id}.pdf`);
         doc.pipe(res);
 
-        const width = 841.89;
-        const height = 595.28;
+        // Dimensões A4 Paisagem (Points)
+        const WIDTH = 841.89;
+        const HEIGHT = 595.28;
 
-        // 1. SIDEBAR
+        // --- 1. SIDEBAR (33% WIDTH ~ 280-285 pts) ---
+        // A proporção 100mm/297mm é ~33.6%. Vamos usar 0.33 para simplificar.
+        const SIDEBAR_WIDTH = WIDTH * 0.33;
+
+        // Background Sidebar
+        doc.rect(0, 0, SIDEBAR_WIDTH, HEIGHT).fill('#e9e4de');
+
+        // Imagem Sidebar
         const assetsDir = path.join(__dirname, 'gerador_certificado', 'img');
-
         const possibleImages = [
+            path.join(assetsDir, 'ervas.webp'), // Prioridade para o webp original
             path.join(assetsDir, 'ervas_fallback.jpg'),
             path.join(assetsDir, 'ervas.png'),
             path.join(__dirname, 'assets', 'cert', 'ervas_fallback.jpg')
         ];
+        const sidebarImg = possibleImages.find(p => fs.existsSync(p));
 
-        let finalImg = possibleImages.find(p => fs.existsSync(p));
-
-        if (finalImg) {
+        if (sidebarImg) {
             try {
-                doc.image(finalImg, 0, 0, { width: 280, height: height, fit: [280, height], align: 'center', valign: 'center' });
+                doc.save();
+                doc.rect(0, 0, SIDEBAR_WIDTH, HEIGHT).clip();
+                doc.image(sidebarImg, 0, 0, {
+                    cover: [SIDEBAR_WIDTH, HEIGHT],
+                    align: 'center',
+                    valign: 'center'
+                });
+                doc.restore();
             } catch (e) {
-                doc.rect(0, 0, 280, height).fill('#e9e4de');
+                console.error("Erro imagem sidebar:", e);
             }
-        } else {
-            doc.rect(0, 0, 280, height).fill('#e9e4de');
         }
 
-        // 2. CONTEÚDO
-        const contentX = 320;
-        const contentWidth = width - contentX - 50;
-        const centerX = contentX + (contentWidth / 2);
-        const topMargin = 50;
-        doc.y = topMargin;
+        // --- 2. MAIN CONTENT AREA ---
+        const CONTENT_START_X = SIDEBAR_WIDTH;
+        const CONTENT_WIDTH = WIDTH - SIDEBAR_WIDTH;
+        const CENTER_X = CONTENT_START_X + (CONTENT_WIDTH / 2); // Centro visual
+
+        // Background Principal
+        doc.rect(SIDEBAR_WIDTH, 0, CONTENT_WIDTH, HEIGHT).fill('#F6F1E9');
+
+        // Configurações de posicionamento vertical (Cursor Y)
+        let cursorY = 50; // Margem superior
+
+        // --- SELO MEDALHA (Absolute Top Right) ---
+        try {
+            const medal = path.join(assetsDir, 'medalha.png');
+            if (fs.existsSync(medal)) {
+                // top: 30px, right: 50px (simulado)
+                doc.image(medal, WIDTH - 120, 30, { width: 80 });
+            }
+        } catch (e) { }
+
+        // --- TEXTOS ---
 
         // School Name
-        doc.font('Times-Bold').fontSize(18).fillColor('#5d6d5f')
-            .text('SABERES DA FLORESTA', contentX, doc.y, { align: 'center', width: contentWidth, characterSpacing: 2 });
+        doc.font('Times-Bold').fontSize(22).fillColor('#5d6d5f')
+            .text('SABERES DA FLORESTA', CONTENT_START_X, cursorY, {
+                width: CONTENT_WIDTH,
+                align: 'center',
+                characterSpacing: 2
+            });
 
-        doc.moveDown(0.5);
+        cursorY += 60;
 
-        // Title
-        doc.font('Times-Roman').fontSize(42).fillColor('#333')
-            .text('Certificado de Conclusão', contentX, doc.y, { align: 'center', width: contentWidth });
+        // Title "Certificado..."
+        doc.font('Times-Roman').fontSize(48).fillColor('#333')
+            .text('Certificado de Conclusão', CONTENT_START_X, cursorY, {
+                width: CONTENT_WIDTH,
+                align: 'center'
+            });
 
-        doc.moveDown(0.25);
+        cursorY += 50;
 
         // Subtitle
-        doc.fontSize(12).fillColor('#888').font('Helvetica')
-            .text('CERTIFICATE OF COMPLETION', contentX, doc.y, { align: 'center', width: contentWidth, characterSpacing: 3 });
+        doc.fontSize(14).fillColor('#888').font('Helvetica')
+            .text('CERTIFICATE OF COMPLETION', CONTENT_START_X, cursorY, {
+                width: CONTENT_WIDTH,
+                align: 'center',
+                characterSpacing: 3
+            });
 
-        doc.moveDown(1.5);
+        cursorY += 60;
 
-        // "This certificate is granted to"
-        doc.fontSize(14).fillColor('#4a4a4a').font('Helvetica')
-            .text('Este certificado é concedido a', contentX, doc.y, { align: 'center', width: contentWidth });
+        // "Este certificado é concedido a"
+        doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica')
+            .text('Este certificado é concedido a', CONTENT_START_X, cursorY, {
+                width: CONTENT_WIDTH,
+                align: 'center'
+            });
 
-        doc.moveDown(1);
+        cursorY += 30;
 
-        // STUDENT NAME
-        const startNameY = doc.y;
-        doc.font('Times-Bold').fontSize(32).fillColor('#5d6d5f')
-            .text(studentName, contentX, doc.y, { align: 'center', width: contentWidth });
+        // NOME DO ALUNO
+        // Ajuste de fonte se nome for longo
+        let nameSize = 40;
+        if (studentName.length > 30) nameSize = 32;
+        doc.font('Times-Bold').fontSize(nameSize).fillColor('#5d6d5f')
+            .text(studentName, CONTENT_START_X, cursorY, {
+                width: CONTENT_WIDTH,
+                align: 'center'
+            });
 
-        // Underline
-        const nameHeight = doc.heightOfString(studentName, { width: contentWidth });
-        const lineY = startNameY + nameHeight + 5;
-        doc.moveTo(contentX + 20, lineY).lineTo(contentX + contentWidth - 20, lineY).strokeColor('#d4c8be').stroke();
+        // Linha abaixo do nome
+        const nameH = doc.heightOfString(studentName, { width: CONTENT_WIDTH });
+        const lineY = cursorY + nameH + 10;
+        const lineW = 400;
+        doc.moveTo(CENTER_X - (lineW / 2), lineY)
+            .lineTo(CENTER_X + (lineW / 2), lineY)
+            .strokeColor('#d4c8be').stroke();
 
-        doc.y = lineY + 20;
+        cursorY = lineY + 30;
 
-        // Completion Text
-        doc.fontSize(14).fillColor('#4a4a4a').font('Helvetica');
-        doc.text('Por ter concluído com sucesso o curso de ', contentX, doc.y, { continued: true, align: 'center', width: contentWidth })
-            .font('Helvetica-Bold').text('SABERES DA FLORESTA: Formação Completa', { continued: true })
-            .font('Helvetica').text(', demonstrando dedicação e competência nas práticas de herborista.', { continued: false });
+        // Texto de Conclusão (limitado largura para quebrar linha bonito)
+        doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica');
+        const textWidth = 500;
+        const textX = CENTER_X - (textWidth / 2);
 
-        doc.moveDown(1.5);
+        doc.text('Por ter concluído com sucesso o curso de ', textX, cursorY, {
+            width: textWidth,
+            align: 'center',
+            continued: true
+        }).font('Helvetica-Bold').text('SABERES DA FLORESTA: Formação Completa', {
+            continued: true
+        }).font('Helvetica').text(', demonstrando dedicação e competência nas práticas de herborista.', {
+            continued: false
+        });
 
-        // Date
+        cursorY += 60;
+
+        // Data
         const hoje = new Date().toLocaleDateString('pt-BR');
-        doc.text(`Concluído em: ${hoje}`, contentX, doc.y, { align: 'center', width: contentWidth });
+        doc.text(`Concluído em: ${hoje}`, CONTENT_START_X, cursorY, {
+            width: CONTENT_WIDTH,
+            align: 'center'
+        });
 
-        // --- SIGNATURES ---
-        const sigY = Math.max(height - 100, doc.y + 40);
-        const sigWidth = 150;
-        const sigGap = 50;
+        // --- ASSINATURAS (Fixo na parte inferior) ---
+        const SIG_Y = HEIGHT - 100;
+        const SIG_BOX_W = 180;
+        const SIG_GAP = 60;
 
-        const sig1X = centerX - sigWidth - (sigGap / 2);
-        const sig2X = centerX + (sigGap / 2);
+        const SIG_1_X = CENTER_X - SIG_BOX_W - (SIG_GAP / 2);
+        const SIG_2_X = CENTER_X + (SIG_GAP / 2);
 
-        // Sig 1
+        // Assinatura 1
         try {
-            const sig1 = path.join(assetsDir, 'M.Luiza.png');
-            if (fs.existsSync(sig1)) doc.image(sig1, sig1X, sigY - 50, { width: 120, align: 'center' });
+            const s1 = path.join(assetsDir, 'M.Luiza.png');
+            if (fs.existsSync(s1)) doc.image(s1, SIG_1_X + 40, SIG_Y - 50, { width: 100 });
         } catch (e) { }
-        doc.moveTo(sig1X, sigY).lineTo(sig1X + sigWidth, sigY).strokeColor('#4a4a4a').stroke();
-        doc.fontSize(10).fillColor('#888').font('Helvetica').text('INSTRUTORA RESPONSÁVEL', sig1X, sigY + 5, { width: sigWidth, align: 'center' });
 
-        // Sig 2
+        doc.moveTo(SIG_1_X, SIG_Y).lineTo(SIG_1_X + SIG_BOX_W, SIG_Y).strokeColor('#4a4a4a').stroke();
+        doc.fontSize(12).font('Helvetica').text('INSTRUTORA RESPONSÁVEL', SIG_1_X, SIG_Y + 10, { width: SIG_BOX_W, align: 'center' });
+
+        // Assinatura 2
         try {
-            const sig2 = path.join(assetsDir, 'J.padilha.png');
-            if (fs.existsSync(sig2)) doc.image(sig2, sig2X + 20, sigY - 50, { width: 100, align: 'center' });
+            const s2 = path.join(assetsDir, 'J.padilha.png');
+            if (fs.existsSync(s2)) doc.image(s2, SIG_2_X + 30, SIG_Y - 50, { width: 120 });
         } catch (e) { }
-        doc.moveTo(sig2X, sigY).lineTo(sig2X + sigWidth, sigY).stroke();
-        doc.text('DIREÇÃO DA ESCOLA', sig2X, sigY + 5, { width: sigWidth, align: 'center' });
+
+        doc.moveTo(SIG_2_X, SIG_Y).lineTo(SIG_2_X + SIG_BOX_W, SIG_Y).stroke();
+        doc.text('DIREÇÃO DA ESCOLA', SIG_2_X, SIG_Y + 10, { width: SIG_BOX_W, align: 'center' });
 
         doc.end();
 
     } catch (error) {
-        console.error("Erro ao gerar certificado via PDFKit:", error);
-        res.status(500).json({ error: 'Erro ao gerar certificado.' });
+        console.error("Erro fatal PDFKit:", error);
+        res.status(500).json({ error: 'Erro na geração do certificado.' });
     }
 });
 
