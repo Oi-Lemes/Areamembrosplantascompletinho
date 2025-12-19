@@ -1,15 +1,26 @@
 "use client";
 
 import { useUser } from '@/contexts/UserContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const DevPlanSwitcher = () => {
   const { user, refetchUser } = useUser();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Removido o check de NODE_ENV para aparecer em produção pro usuário testar
-  if (!user) return null;
+  useEffect(() => {
+    console.log("🛠️ DevPlanSwitcher montado! User:", user);
+  }, [user]);
+
+  // REMOVIDO: if (!user) return null; 
+  // AGORA: Mostra "Carregando..." se não tiver user, pra gente saber se o componente carregou
+  if (!user) {
+    return (
+      <div className="fixed top-20 right-4 z-[9999] bg-red-600 text-white px-2 py-1 rounded text-xs animate-pulse">
+        Debug: Carregando User...
+      </div>
+    );
+  }
 
   const handleUpdate = async (plan: string, live: boolean, wallet: boolean) => {
     setLoading(true);
@@ -19,7 +30,7 @@ export const DevPlanSwitcher = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          phone: user.phone, // Pega do usuário logado
+          phone: user.phone,
           plan,
           hasLiveAccess: live,
           hasWalletAccess: wallet
@@ -28,10 +39,9 @@ export const DevPlanSwitcher = () => {
 
       if (!res.ok) throw new Error('Falha no update');
 
-      // Força recarregamento do usuário para refletir mudança
       if (refetchUser) await refetchUser();
-      alert(`✅ Plano alterado para: ${plan.toUpperCase()}\n(A página pode recarregar)`);
-      window.location.reload(); // Recarrega para garantir que tudo atualize
+      alert(`✅ Plano alterado para: ${plan.toUpperCase()}\n(A página foi atualizada)`);
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert('Erro ao alterar plano. Verifique o console.');
@@ -41,18 +51,22 @@ export const DevPlanSwitcher = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[9999] font-sans">
+    <div className="fixed top-24 right-4 z-[9999] font-sans">
+      {/* MUDANÇA: Mudei para TOP-24 RIGHT-4 para sair de cima do rodapé */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gray-900 border border-gray-600 text-white px-4 py-2 rounded-full text-xs shadow-xl opacity-90 hover:opacity-100 flex items-center gap-2 transition-all"
+        className="bg-red-600 hover:bg-red-700 text-white border-2 border-white px-4 py-2 rounded-full text-xs shadow-2xl flex items-center gap-2 transition-all transform hover:scale-105"
+        title="Painel de Debug"
       >
-        <span>🛠️ Debug: {user.plan?.toUpperCase()}</span>
+        <span>🛠️ DEBUG: {user.plan?.toUpperCase()}</span>
         {loading && <span className="animate-spin">⏳</span>}
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl shadow-2xl w-72 space-y-3">
-          <h3 className="text-white text-sm font-bold border-b border-gray-700 pb-2 text-center">Painel de Teste (Modo Deus)</h3>
+        <div className="absolute top-12 right-0 bg-gray-900 border-2 border-red-500 p-4 rounded-xl shadow-2xl w-72 space-y-3">
+          <h3 className="text-white text-sm font-bold border-b border-gray-700 pb-2 text-center text-red-500">
+            PAINEL DE TESTE (MODO DEUS)
+          </h3>
 
           <button
             onClick={() => handleUpdate('basic', false, false)}
@@ -85,7 +99,7 @@ export const DevPlanSwitcher = () => {
           >
             <div className="text-purple-300">
               <span className="block font-bold">Nível 3: Ultra</span>
-              <span className="text-[10px] opacity-70">Tudo Liberado (Live/Carteira)</span>
+              <span className="text-[10px] opacity-70">Tudo Liberado</span>
             </div>
             {user.plan === 'ultra' && <span className="text-green-500 text-lg">✓</span>}
           </button>
