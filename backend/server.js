@@ -471,7 +471,7 @@ app.get('/progresso-modulos', authenticateToken, async (req, res) => {
     res.json(resultado);
 });
 
-// --- ROTA DE GERAÇÃO DE CERTIFICADO (PDFKIT - LAYOUT PREMIUM HARDCODED FIXED PLUS) ---
+// --- ROTA DE GERAÇÃO DE CERTIFICADO (PDFKIT - LAYOUT PREMIUM HARDCODED FINAL) ---
 app.post('/gerar-certificado', authenticateToken, async (req, res) => {
     const { safeStudentName } = req.body;
     const studentName = safeStudentName ? safeStudentName.replace(/_/g, ' ').toUpperCase() : req.user.name.toUpperCase();
@@ -534,7 +534,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         // Configurações de posicionamento vertical (Cursor Y)
         let cursorY = 50; // Margem superior
 
-        // --- SELO MEDALHA (Absolute Top Right) ---
+        // --- MEDALHA ---
         try {
             const medal = path.join(assetsDir, 'medalha.png');
             if (fs.existsSync(medal)) {
@@ -554,7 +554,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
 
         cursorY += 60;
 
-        // Title "Certificado..."
+        // Title 
         doc.font('Times-Roman').fontSize(48).fillColor('#333')
             .text('Certificado de Conclusão', CONTENT_START_X, cursorY, {
                 width: CONTENT_WIDTH,
@@ -583,7 +583,6 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         cursorY += 30;
 
         // NOME DO ALUNO
-        // Ajuste de fonte se nome for longo
         let nameSize = 40;
         if (studentName.length > 30) nameSize = 32;
         doc.font('Times-Bold').fontSize(nameSize).fillColor('#5d6d5f')
@@ -592,59 +591,50 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
                 align: 'center'
             });
 
-        // Linha abaixo do nome
-        const nameH = doc.heightOfString(studentName, { width: CONTENT_WIDTH });
-
-        // FIX: Proximidade Extrema (2px)
-        const lineY = cursorY + nameH + 2;
+        // FIX: Linha EXATAMENTE abaixo do texto (baseado no tamanho da fonte)
+        // Ignora heightOfString para evitar gap de descender
+        const lineOffset = nameSize + 5; // 40px font + 5px gap = 45px do topo
+        const lineY = cursorY + lineOffset;
 
         const lineW = 400;
         doc.moveTo(CENTER_X - (lineW / 2), lineY)
             .lineTo(CENTER_X + (lineW / 2), lineY)
             .strokeColor('#d4c8be').stroke();
 
+        // Pula para o próximo bloco
         cursorY = lineY + 30;
 
-        // --- CORREÇÃO DO TEXTO SOBRESCRITO (MANTIDO) ---
-        // Separando em 3 linhas manuais
+        // --- TEXTOS SEPARADOS (Fix Overlap) ---
         const fixTextW = 550;
         const fixTextX = CENTER_X - (fixTextW / 2);
 
-        // 1. Texto introdutório
         doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica')
             .text('Por ter concluído com sucesso o curso de', fixTextX, cursorY, {
-                width: fixTextW,
-                align: 'center'
+                width: fixTextW, align: 'center'
             });
 
-        cursorY += 25; // Pulo fixo
+        cursorY += 25;
 
-        // 2. Nome do Curso (Negrito)
         doc.font('Helvetica-Bold').fontSize(18).fillColor('#2d3e2e')
             .text('SABERES DA FLORESTA: Formação Completa', fixTextX, cursorY, {
-                width: fixTextW,
-                align: 'center'
+                width: fixTextW, align: 'center'
             });
 
-        cursorY += 30; // Pulo fixo
+        cursorY += 30;
 
-        // 3. Texto final
         doc.font('Helvetica').fontSize(16).fillColor('#4a4a4a')
             .text('demonstrando dedicação e competência nas práticas de herborista.', fixTextX, cursorY, {
-                width: fixTextW,
-                align: 'center'
+                width: fixTextW, align: 'center'
             });
 
         cursorY += 50;
 
-        // Date
         const hoje = new Date().toLocaleDateString('pt-BR');
         doc.text(`Concluído em: ${hoje}`, CONTENT_START_X, cursorY, {
-            width: CONTENT_WIDTH,
-            align: 'center'
+            width: CONTENT_WIDTH, align: 'center'
         });
 
-        // --- ASSINATURAS (Ajustado Y para ficar rente AO EXTREMO) ---
+        // --- ASSINATURAS (Ajustado Y para ficar rente) ---
         const SIG_Y = HEIGHT - 100;
         const SIG_BOX_W = 180;
         const SIG_GAP = 60;
@@ -652,19 +642,27 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         const SIG_1_X = CENTER_X - SIG_BOX_W - (SIG_GAP / 2);
         const SIG_2_X = CENTER_X + (SIG_GAP / 2);
 
-        // Assinatura 1 - Lowered from -35 to -10 (Sits ON the line)
+        // Assinatura 1
+        // Colocando a base da imagem exatamente na linha
         try {
             const s1 = path.join(assetsDir, 'M.Luiza.png');
-            if (fs.existsSync(s1)) doc.image(s1, SIG_1_X + 40, SIG_Y - 10, { width: 100 });
+            if (fs.existsSync(s1)) {
+                // width: 100. Aspect ~2:1 -> Height ~50.
+                // Se desenhar em SIG_Y - 50, o fundo bate na linha.
+                // Vou desenhar um pouco mais baixo (-45) para "pesar" na linha.
+                doc.image(s1, SIG_1_X + 40, SIG_Y - 45, { width: 100 });
+            }
         } catch (e) { }
 
         doc.moveTo(SIG_1_X, SIG_Y).lineTo(SIG_1_X + SIG_BOX_W, SIG_Y).strokeColor('#4a4a4a').stroke();
         doc.fontSize(12).font('Helvetica').text('INSTRUTORA RESPONSÁVEL', SIG_1_X, SIG_Y + 10, { width: SIG_BOX_W, align: 'center' });
 
-        // Assinatura 2 - Lowered from -35 to -10
+        // Assinatura 2
         try {
             const s2 = path.join(assetsDir, 'J.padilha.png');
-            if (fs.existsSync(s2)) doc.image(s2, SIG_2_X + 30, SIG_Y - 10, { width: 120 });
+            if (fs.existsSync(s2)) {
+                doc.image(s2, SIG_2_X + 30, SIG_Y - 45, { width: 120 });
+            }
         } catch (e) { }
 
         doc.moveTo(SIG_2_X, SIG_Y).lineTo(SIG_2_X + SIG_BOX_W, SIG_Y).stroke();
@@ -680,19 +678,17 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
 
 // --- ROTA DE CORREÇÃO (SEED) ---
 // Executa a sincronização dos MOCK_MODULOS com o Banco de Dados Real
-// Isso resolve o erro "Foreign key constraint violated" ao marcar aulas.
 app.get('/fix-content-db', async (req, res) => {
     try {
         let log = [];
         for (const mod of MOCK_MODULOS) {
-            // Cria/Atualiza Módulo
             await prisma.modulo.upsert({
                 where: { id: mod.id },
                 update: {
                     nome: mod.nome,
                     description: mod.description,
                     ordem: mod.ordem,
-                    imagem: 'https://placehold.co/600x400/10b981/ffffff?text=Modulo+' + mod.id // Fallback img
+                    imagem: 'https://placehold.co/600x400/10b981/ffffff?text=Modulo+' + mod.id
                 },
                 create: {
                     id: mod.id,
@@ -703,8 +699,6 @@ app.get('/fix-content-db', async (req, res) => {
                 }
             });
             log.push(`Módulo ${mod.id} sincronizado.`);
-
-            // Cria/Atualiza Aulas
             if (mod.aulas && mod.aulas.length > 0) {
                 for (const aula of mod.aulas) {
                     await prisma.aula.upsert({
@@ -735,7 +729,6 @@ app.get('/fix-content-db', async (req, res) => {
         res.status(500).send("Erro ao sincronizar: " + error.message);
     }
 });
-
 
 // Inicia o servidor
 app.listen(PORT, () => {
