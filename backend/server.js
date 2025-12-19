@@ -504,13 +504,16 @@ app.post('/gerar-certificado', authenticateToken, (req, res) => {
         // Tenta usar o arquivo original (se fosse suportado) ou o fallback JPG que preparamos
         const bgImage = path.join(assetsDir, 'ervas_fallback.jpg');
         if (fs.existsSync(bgImage)) {
+            // FIX: "totalmente pequena" -> Usar 'cover' em vez de 'fit' para preencher tudo
+            doc.save(); // Salva estado para clip
+            doc.rect(0, 0, sidebarWidth, height).clip();
             doc.image(bgImage, 0, 0, {
-                width: sidebarWidth,
-                height: height,
-                fit: [sidebarWidth, height],
+                cover: [sidebarWidth, height], // Preenche todo o espaço (crop se necessário)
                 align: 'center',
                 valign: 'center'
             });
+            doc.restore(); // Restaura clip
+
             // Overlay para ofuscar um pouco a imagem (opacity trick)
             doc.rect(0, 0, sidebarWidth, height).fillOpacity(0.3).fill('#e9e4de').fillOpacity(1);
         }
@@ -537,17 +540,17 @@ app.post('/gerar-certificado', authenticateToken, (req, res) => {
     doc.font('Times-Bold').fontSize(22).fillColor('#5d6d5f')
         .text('SABERES DA FLORESTA', contentX, currentY, { align: 'center', width: contentWidth, characterSpacing: 2 });
 
-    currentY += 40;
+    currentY += 50; // FIX: Aumentado espaçamento (+10)
 
     // Título do Certificado
     doc.font('Times-Roman').fontSize(48).fillColor('#333')
         .text('Certificado de Conclusão', contentX, currentY, { align: 'center', width: contentWidth });
 
-    currentY += 50;
+    currentY += 60; // FIX: Aumentado espaçamento (+10)
     doc.fontSize(14).fillColor('#888').font('Helvetica')
         .text('CERTIFICATE OF COMPLETION', contentX, currentY, { align: 'center', width: contentWidth, characterSpacing: 3 });
 
-    currentY += 60;
+    currentY += 60; // Mantido
     doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica')
         .text('Este certificado é concedido a', contentX, currentY, { align: 'center', width: contentWidth });
 
@@ -557,19 +560,22 @@ app.post('/gerar-certificado', authenticateToken, (req, res) => {
     doc.font('Times-Bold').fontSize(36).fillColor('#5d6d5f')
         .text(studentName, contentX, currentY, { align: 'center', width: contentWidth });
 
-    currentY += 60;
-    // Texto de Conclusão
-    doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica')
-        .text('Por ter concluído com sucesso o curso de ', contentX, currentY, { continued: true, align: 'center', width: contentWidth })
+    currentY += 70; // FIX: Aumentado espaçamento (+10) para não colar no nome
+
+    // Texto de Conclusão (Quebra de linha manual para evitar overlap ou largura excessiva)
+    doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica');
+    const textOptions = { align: 'center', width: contentWidth };
+
+    doc.text('Por ter concluído com sucesso o curso de ', contentX, currentY, { continued: true, ...textOptions })
         .font('Helvetica-Bold').text('SABERES DA FLORESTA: Formação Completa', { continued: true })
         .font('Helvetica').text(', demonstrando dedicação e competência nas práticas de herborista.');
 
-    currentY += 50;
+    currentY += 60; // FIX: Aumentado espaçamento
     const hoje = new Date().toLocaleDateString('pt-BR');
-    doc.text(`Concluído em: ${hoje}`, contentX, currentY, { align: 'center', width: contentWidth });
+    doc.text(`Concluído em: ${hoje}`, contentX, currentY, textOptions);
 
     // --- 5. ASSINATURAS ---
-    const sigY = height - 120;
+    const sigY = height - 100; // FIX: Abaixado um pouco (+20 de margem bottom)
     const sigWidth = 150;
     const sigGap = 50;
 
@@ -579,7 +585,7 @@ app.post('/gerar-certificado', authenticateToken, (req, res) => {
     // Assinatura 1: M.Luiza
     try {
         const sig1 = path.join(assetsDir, 'M.Luiza.png');
-        if (fs.existsSync(sig1)) doc.image(sig1, sig1X, sigY - 40, { width: 120, align: 'center' });
+        if (fs.existsSync(sig1)) doc.image(sig1, sig1X, sigY - 50, { width: 120, align: 'center' }); // Ajustado Y da img
     } catch (e) { }
     doc.moveTo(sig1X, sigY).lineTo(sig1X + sigWidth, sigY).strokeColor('#4a4a4a').stroke();
     doc.fontSize(10).fillColor('#888').font('Helvetica').text('INSTRUTORA RESPONSÁVEL', sig1X, sigY + 5, { width: sigWidth, align: 'center' });
@@ -587,7 +593,7 @@ app.post('/gerar-certificado', authenticateToken, (req, res) => {
     // Assinatura 2: J.Padilha
     try {
         const sig2 = path.join(assetsDir, 'J.padilha.png');
-        if (fs.existsSync(sig2)) doc.image(sig2, sig2X + 20, sigY - 40, { width: 100, align: 'center' });
+        if (fs.existsSync(sig2)) doc.image(sig2, sig2X + 20, sigY - 50, { width: 100, align: 'center' }); // Ajustado Y da img
     } catch (e) { }
     doc.moveTo(sig2X, sigY).lineTo(sig2X + sigWidth, sigY).stroke();
     doc.text('DIREÇÃO DA ESCOLA', sig2X, sigY + 5, { width: sigWidth, align: 'center' });
