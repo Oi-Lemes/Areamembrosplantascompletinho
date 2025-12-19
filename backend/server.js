@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import axios from 'axios';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
+import PDFDocument from 'pdfkit'; // NEW: PDF Library for Certificates
 
 const prisma = new PrismaClient();
 const __filename = fileURLToPath(import.meta.url);
@@ -468,6 +469,52 @@ app.get('/progresso-modulos', authenticateToken, async (req, res) => {
         }
     });
     res.json(resultado);
+});
+
+// --- ROTA DE GERAÇÃO DE CERTIFICADO (NOVO) ---
+app.post('/gerar-certificado', authenticateToken, (req, res) => {
+    const { safeStudentName } = req.body;
+    const studentName = safeStudentName ? safeStudentName.replace(/_/g, ' ').toUpperCase() : req.user.name.toUpperCase();
+
+    // Create a document
+    const doc = new PDFDocument({
+        layout: 'landscape',
+        size: 'A4',
+    });
+
+    // Pipe the PDF into the response
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=certificado_${req.user.id}.pdf`);
+    doc.pipe(res);
+
+    // --- DESIGN DO CERTIFICADO ---
+    // Fundo (se tivesse) ou Borda
+    doc.rect(20, 20, doc.page.width - 40, doc.page.height - 40).stroke('#10b981'); // Borda Verde Esmeralda
+
+    // Cabeçalho
+    doc.moveDown(4);
+    doc.fontSize(30).font('Helvetica-Bold').fillColor('#064e3b').text('CERTIFICADO DE CONCLUSÃO', { align: 'center' });
+
+    doc.moveDown(1);
+    doc.fontSize(15).font('Helvetica').fillColor('#333').text('Certificamos que', { align: 'center' });
+
+    doc.moveDown(1);
+    doc.fontSize(25).font('Helvetica-Bold').fillColor('#000').text(studentName, { align: 'center' });
+
+    doc.moveDown(1);
+    doc.fontSize(15).font('Helvetica').fillColor('#333').text('concluiu com êxito o curso', { align: 'center' });
+
+    doc.moveDown(0.5);
+    doc.fontSize(20).font('Helvetica-Bold').fillColor('#10b981').text('Saberes da Floresta', { align: 'center' });
+
+    doc.moveDown(4);
+    // Assinatura Fake
+    doc.fontSize(12).font('Helvetica').fillColor('#555').text('__________________________________', { align: 'center' });
+    doc.text('Dr. José Nakamura', { align: 'center' });
+    doc.text('Diretor Acadêmico', { align: 'center' });
+
+    // Finalize PDF file
+    doc.end();
 });
 
 // --- ROTA DE CORREÇÃO (SEED) ---

@@ -393,14 +393,20 @@ export default function DashboardPage() {
           // - Se bloqueado/paywall: grayscale alto, sem cursor
           // - Se concluído: grayscale leve (visual "terminado"), mas ainda clicável e brilhante
           // - Se normal: hover scale e shadow
+          // Lógica Especial: Módulos Pagos/Extras (ID >= 90) nunca ficam cinza, para chamar atenção
+          const isSpecialModule = modulo.id >= 90;
+
           const linkClassName = `group relative block rounded-lg overflow-hidden transition-all duration-500 transform 
             ${isPaywalled
               ? 'cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/40'
               : isLocked
-                ? 'cursor-not-allowed filter grayscale contrast-75 brightness-75'
+                ? (isSpecialModule
+                  ? 'cursor-not-allowed contrast-75 brightness-75' // Bloqueado mas colorido (sem grayscale)
+                  : 'cursor-not-allowed filter grayscale contrast-75 brightness-75' // Bloqueado normal (cinza)
+                )
                 : isCompleted
-                  ? 'hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20 grayscale-[0.8] hover:grayscale-0 opacity-80 hover:opacity-100 ring-2 ring-emerald-500/30' // Visual "Terminado"
-                  : 'hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/40' // Visual "A Fazer"
+                  ? 'hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20 grayscale-[0.8] hover:grayscale-0 opacity-80 hover:opacity-100 ring-2 ring-emerald-500/30'
+                  : 'hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/40' // Normal
             }`;
 
           return (
