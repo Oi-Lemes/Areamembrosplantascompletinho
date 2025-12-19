@@ -221,33 +221,46 @@ const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
 
               <div className={`flex flex-col items-center transition-all duration-700 ease-out ${isMounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
 
-                {/* ÁREA DA FOTO (CLICKABLE) */}
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={handleAvatarClick}
+                {/* Avatar do Usuário (Foto de Perfil) */}
+                <label
+                  className="relative group cursor-pointer block"
                 >
-                  <div className="w-20 h-20 rounded-full border-2 border-amber-500/50 p-1 mb-4 shadow-[0_0_15px_rgba(245,158,11,0.2)] overflow-hidden">
-                    <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-2xl relative overflow-hidden">
-                      {isUploading ? (
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      ) : user?.profileImage ? (
+                  <div className="w-20 h-20 rounded-full border-2 border-emerald-500/80 p-1 mb-4 shadow-[0_0_20px_rgba(16,185,129,0.5)] overflow-hidden bg-slate-900 transition-all active:scale-95 group-hover:shadow-[0_0_25px_rgba(16,185,129,0.8)]">
+                    <div className="w-full h-full rounded-full bg-slate-800 flex items-center justify-center text-2xl relative overflow-hidden group-hover:bg-slate-700 transition-colors">
+                      {user?.profileImage ? (
+                        // Use img tag for simpler control, or Next.js Image if preferred. Using img specific for external uploads check
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={getProfileImageUrl(user.profileImage) || ''}
                           alt="Perfil"
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback se a imagem falhar
+                            (e.target as HTMLImageElement).src = 'https://ui-avatars.com/api/?name=Membro+VIP&background=random';
+                          }}
                         />
                       ) : (
-                        <span>👤</span>
+                        // Ícone de Câmera "Na Cara" 
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-emerald-400">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                        </svg>
                       )}
 
                       {/* Overlay de Edição on Hover */}
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span className="text-xs text-white pb-1">📷</span>
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isUploading ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-white scale-110">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                          </svg>
+                        )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Input Hidden */}
+                  {/* Input Hidden - Dentro do Label dispara automático */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -255,7 +268,7 @@ const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
                     accept="image/*"
                     onChange={handleImageChange}
                   />
-                </div>
+                </label>
                 <h2 className="text-xl font-serif text-amber-50 tracking-wide font-thin italic mb-2">
                   {userLoading
                     ? '...'
