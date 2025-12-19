@@ -25,31 +25,65 @@ const MOCK_MODULOS = [
         description: 'Descubra o poder das ervas, desde a identificação até o cultivo seguro.',
         ordem: 1,
         aulas: [
-            { id: 1, nome: 'Descobrindo o poder das ervas', videoUrl: 'https://descobrindo-o-poder-das--xrh9gpa.gamma.site/', ordem: 1 },
-            { id: 2, nome: 'Cultive suas próprias plantas', videoUrl: 'https://seu-jardim-de-cura--dmq9aik.gamma.site/', ordem: 2 },
-            { id: 3, nome: 'Ervas em chás fitoterápicos', videoUrl: 'https://fast.wistia.net/embed/iframe/qug4mwlyn6', ordem: 3 }
+            { id: 1, nome: 'Descobrindo o poder das ervas: identifique e conheça suas propriedades', videoUrl: 'https://descobrindo-o-poder-das--xrh9gpa.gamma.site/', ordem: 1 },
+            { id: 2, nome: 'Cultive e preserve suas próprias plantas medicinais em casa', videoUrl: 'https://seu-jardim-de-cura--dmq9aik.gamma.site/', ordem: 2 },
+            { id: 3, nome: 'Ervas em chás fitoterápicos', videoUrl: 'https://fast.wistia.net/embed/iframe/qug4mwlyn6?web_component=true&seo=true', ordem: 3 }
         ]
     },
-    // ... Módulos 2 a 6 mantidos ...
     {
-        id: 2, nome: 'Módulo 2 – Tinturas Mágicas', description: 'Extraia o Poder das Ervas.', ordem: 2,
-        aulas: [{ id: 4, nome: 'Tinturas: o que são?', videoUrl: '#', ordem: 1 }]
+        id: 2,
+        nome: 'Módulo 2 – Tinturas Mágicas: Extraia o Poder das Ervas',
+        description: 'Aprenda a criar tinturas potentes para o seu bem-estar diário.',
+        ordem: 2,
+        aulas: [
+            { id: 4, nome: 'Tinturas: o que são e por que transformar suas ervas', videoUrl: 'https://tinturas-a-arte-de-extra-8kot30h.gamma.site/', ordem: 1 },
+            { id: 5, nome: 'Passo a passo: Tintura de ervas medicinais', videoUrl: 'https://fast.wistia.net/embed/iframe/78xlx6fjop?web_component=true&seo=true', ordem: 2 },
+            { id: 6, nome: 'Receitas poderosas de tinturas para o dia a dia', videoUrl: 'https://minha-farmacia-natural-5h7ustr.gamma.site/', ordem: 3 }
+        ]
     },
     {
-        id: 3, nome: 'Módulo 3 – Pomadas Naturais', description: 'Pomadas para cicatrização.', ordem: 3,
-        aulas: [{ id: 7, nome: 'Fazendo óleo medicinal', videoUrl: '#', ordem: 1 }]
+        id: 3,
+        nome: 'Módulo 3 – Pomadas Naturais que Curam',
+        description: 'Transforme ingredientes naturais em pomadas para cicatrização e relaxamento.',
+        ordem: 3,
+        aulas: [
+            { id: 7, nome: 'Fazendo óleo medicinal com ervas', videoUrl: 'https://fast.wistia.net/embed/iframe/c2g2o918i7?web_component=true&seo=true', ordem: 1 },
+            { id: 8, nome: 'Extraindo propriedades medicinais para aplicação direta', videoUrl: 'https://o-toque-que-cura-yh9llta.gamma.site/', ordem: 2 },
+            { id: 9, nome: 'Pomadas práticas: Vela de óleo medicinal', videoUrl: 'https://fast.wistia.net/embed/iframe/ye7c3ffs9p?web_component=true&seo=true', ordem: 3 }
+        ]
     },
     {
-        id: 4, nome: 'Módulo 4 – Cascas de Frutas', description: 'Remédios naturais com cascas.', ordem: 4,
-        aulas: [{ id: 10, nome: 'Cascas que viram remédios', videoUrl: '#', ordem: 1 }]
+        id: 4,
+        nome: 'Módulo 4 – Cascas de Frutas: Tesouros Desperdiçados',
+        description: 'Aprenda a transformar cascas de frutas em poderosos remédios naturais.',
+        ordem: 4,
+        aulas: [
+            { id: 10, nome: 'Descubra quais cascas podem virar remédios naturais', videoUrl: 'https://o-tesouro-na-casca-md753ks.gamma.site/', ordem: 1 },
+            { id: 11, nome: 'Como secar, conservar e armazenar para uso fitoterápico', videoUrl: 'https://guia-completo-de-secagem-kl9b6o8.gamma.site/', ordem: 2 },
+            { id: 12, nome: 'Transforme cascas em infusões e xaropes que curam', videoUrl: 'https://fast.wistia.net/embed/iframe/e5n4d46exq?web_component=true&seo=true', ordem: 3 }
+        ]
     },
     {
-        id: 5, nome: 'Módulo 5 – Cascas de Vegetais', description: 'Propriedades medicinais das cascas.', ordem: 5,
-        aulas: [{ id: 13, nome: 'Propriedades medicinais', videoUrl: '#', ordem: 1 }]
+        id: 5,
+        nome: 'Módulo 5 – Cascas de Vegetais: Poder Oculto',
+        description: 'Desvende as propriedades medicinais das cascas que você joga fora.',
+        ordem: 5,
+        aulas: [
+            { id: 13, nome: 'Propriedades medicinais das cascas que você joga fora', videoUrl: 'https://a-farmacia-que-voce-joga-acg4bcc.gamma.site/', ordem: 1 },
+            { id: 14, nome: 'Técnicas de desidratação e preparo eficazes', videoUrl: 'https://a-arte-de-preservar-a-na-t9omvpg.gamma.site/', ordem: 2 },
+            { id: 15, nome: 'Receitas de tinturas e xaropes que potencializam a saúde', videoUrl: 'https://elixires-da-natureza-4q0ooaf.gamma.site/', ordem: 3 }
+        ]
     },
     {
-        id: 6, nome: 'Módulo 6 – Fitoterapia Avançada', description: 'Combinações Inteligentes.', ordem: 6,
-        aulas: [{ id: 16, nome: 'Como combinar ervas', videoUrl: '#', ordem: 1 }]
+        id: 6,
+        nome: 'Módulo 6 – Fitoterapia Avançada: Combinações Inteligentes',
+        description: 'Crie suas próprias fórmulas personalizadas para resultados máximos.',
+        ordem: 6,
+        aulas: [
+            { id: 16, nome: 'Como combinar ervas: Cataplasma com erva medicinal', videoUrl: 'https://fast.wistia.net/embed/iframe/kju2fcxklc?web_component=true&seo=true', ordem: 1 },
+            { id: 17, nome: 'Crie suas próprias receitas: Méis de ervas medicinais', videoUrl: 'https://fast.wistia.net/embed/iframe/edzc1q22uv?web_component=true&seo=true', ordem: 2 },
+            { id: 18, nome: 'Dosagem, preservação e cuidados para resultados duradouros', videoUrl: 'https://a-medida-da-natureza-aura6ot.gamma.site/', ordem: 3 }
+        ]
     },
     {
         id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', ordem: 98, aulas: []
