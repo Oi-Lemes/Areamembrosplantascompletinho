@@ -28,8 +28,19 @@ const PwaInstallPrompt = () => {
 
   useEffect(() => {
     if ('serviceWorker' in navigator && process.env.NODE_ENV !== 'development') {
-      navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('Service Worker registado.'))
+      // FORÇA A ATUALIZAÇÃO DO SERVICE WORKER (FIX CRÍTICO)
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          registration.unregister(); // Remove o antigo (que estava com bug)
+        }
+      });
+
+      // Registra o novo limpo
+      navigator.serviceWorker.register('/sw.js?v=2')
+        .then((reg) => {
+          console.log('Service Worker v2 registado.');
+          reg.update(); // Força update imediato
+        })
         .catch(err => console.error("Falha no registo do Service Worker:", err));
     }
 
