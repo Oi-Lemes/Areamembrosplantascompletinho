@@ -1,98 +1,96 @@
-// Caminho: frontend/src/components/DevPlanSwitcher.tsx
 "use client";
 
-// Importamos o hook e o tipo User do nosso contexto
-import { useUser, User } from '@/contexts/UserContext';
+import { useUser } from '@/contexts/UserContext';
+import { useState } from 'react';
 
 export const DevPlanSwitcher = () => {
-  // --- 1. SÓ RENDERIZA EM DESENVOLVIMENTO ---
-  if (process.env.NODE_ENV !== 'development') {
-    return null;
-  }
+  const { user, refetchUser } = useUser();
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const { user, setUser } = useUser();
+  // Removido o check de NODE_ENV para aparecer em produção pro usuário testar
+  if (!user) return null;
 
-  // Se não há usuário logado, não mostra nada
-  if (!user || !setUser) {
-    return null;
-  }
+  const handleUpdate = async (plan: string, live: boolean, wallet: boolean) => {
+    setLoading(true);
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
+      const res = await fetch(`${backendUrl}/debug/toggle-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: user.phone, // Pega do usuário logado
+          plan,
+          hasLiveAccess: live,
+          hasWalletAccess: wallet
+        })
+      });
 
-  // --- 2. FUNÇÃO PARA MUDAR O PLANO ---
-  const handlePlanChange = (plan: 'basic' | 'premium' | 'ultra') => {
-    
-    // Criamos um novo objeto de usuário FALSO, baseado no usuário atual
-    const updatedUser: User = {
-      ...user,
-      plan: plan,
-      
-      // --- IMPORTANTE: Ajuste estas regras de acesso conforme sua lógica de negócio ---
-      hasLiveAccess: (plan === 'premium' || plan === 'ultra'),
-      hasNinaAccess: (plan === 'ultra'),
-      hasWalletAccess: (plan === 'ultra'),
-    };
+      if (!res.ok) throw new Error('Falha no update');
 
-    // --- 3. ATUALIZA O ESTADO GLOBAL ---
-    setUser(updatedUser);
+      // Força recarregamento do usuário para refletir mudança
+      if (refetchUser) await refetchUser();
+      alert(`✅ Plano alterado para: ${plan.toUpperCase()}\n(A página pode recarregar)`);
+      window.location.reload(); // Recarrega para garantir que tudo atualize
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao alterar plano. Verifique o console.');
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // --- ALTERAÇÃO NO ESTILO AQUI ---
-  // Estilos inline para a "barra centralizada no rodapé"
-  const switcherStyle: React.CSSProperties = {
-    position: 'fixed',
-    bottom: '20px',
-    
-    // Substituído 'right: 20px' por esta lógica de centralização:
-    left: '50%',
-    transform: 'translateX(-50%)',
-
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    padding: '10px 15px', // Ajustado o padding
-    borderRadius: '8px',
-    zIndex: 9999,
-    border: '1px solid #fff',
-    color: 'white',
-    fontFamily: 'sans-serif',
-    fontSize: '14px',
-
-    // Adicionado display: flex para alinhar o título e os botões horizontalmente
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px' // Espaço entre o título e o grupo de botões
-  };
-  // --- FIM DA ALTERAÇÃO NO ESTILO ---
-
-  const buttonStyle = (isActive: boolean): React.CSSProperties => ({
-    padding: '5px 10px',
-    cursor: 'pointer',
-    border: 'none',
-    borderRadius: '4px',
-    backgroundColor: isActive ? '#0070f3' : '#555',
-    color: 'white',
-    fontWeight: isActive ? 'bold' : 'normal',
-    whiteSpace: 'nowrap' // Evita que o texto quebre
-  });
 
   return (
-    <div style={switcherStyle}>
-      {/* Título (sem margem) */}
-      <h4 style={{ margin: 0, padding: 0, fontSize: '12px', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
-        [PAINEL DE TESTE]
-      </h4>
-      
-      {/* --- ALTERAÇÃO NO LAYOUT DOS BOTÕES --- */}
-      {/* Alterado para 'flexDirection: row' para ficarem lado a lado */}
-      <div style={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-        <button onClick={() => handlePlanChange('basic')} style={buttonStyle(user.plan === 'basic')}>
-          Basic
-        </button>
-        <button onClick={() => handlePlanChange('premium')} style={buttonStyle(user.plan === 'premium')}>
-          Premium
-        </button>
-        <button onClick={() => handlePlanChange('ultra')} style={buttonStyle(user.plan === 'ultra')}>
-          Ultra
-        </button>
-      </div>
-      {/* --- FIM DA ALTERAÇÃO NOS BOTÕES --- */}
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-[9999] font-sans">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-gray-900 border border-gray-600 text-white px-4 py-2 rounded-full text-xs shadow-xl opacity-90 hover:opacity-100 flex items-center gap-2 transition-all"
+      >
+        <span>🛠️ Debug: {user.plan?.toUpperCase()}</span>
+        {loading && <span className="animate-spin">⏳</span>}
+      </button>
+
+      {isOpen && (
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-900 border border-gray-700 p-4 rounded-xl shadow-2xl w-72 space-y-3">
+          <h3 className="text-white text-sm font-bold border-b border-gray-700 pb-2 text-center">Painel de Teste (Modo Deus)</h3>
+
+          <button
+            onClick={() => handleUpdate('basic', false, false)}
+            disabled={loading}
+            className={`w-full text-left px-3 py-3 rounded-lg hover:bg-gray-800 text-xs flex justify-between items-center transition-colors ${user.plan === 'basic' ? 'bg-gray-800 ring-1 ring-gray-500' : ''}`}
+          >
+            <div className="text-gray-300">
+              <span className="block font-bold">Nível 1: Básico</span>
+              <span className="text-[10px] opacity-70">Trava após Módulo 6</span>
+            </div>
+            {user.plan === 'basic' && <span className="text-green-500 text-lg">✓</span>}
+          </button>
+
+          <button
+            onClick={() => handleUpdate('premium', false, false)}
+            disabled={loading}
+            className={`w-full text-left px-3 py-3 rounded-lg hover:bg-gray-800 text-xs flex justify-between items-center transition-colors ${user.plan === 'premium' ? 'bg-gray-800 ring-1 ring-amber-500/50' : ''}`}
+          >
+            <div className="text-amber-300">
+              <span className="block font-bold">Nível 2: Premium</span>
+              <span className="text-[10px] opacity-70">Libera Módulos • Trava Live</span>
+            </div>
+            {user.plan === 'premium' && <span className="text-green-500 text-lg">✓</span>}
+          </button>
+
+          <button
+            onClick={() => handleUpdate('ultra', true, true)}
+            disabled={loading}
+            className={`w-full text-left px-3 py-3 rounded-lg hover:bg-gray-800 text-xs flex justify-between items-center transition-colors ${user.plan === 'ultra' ? 'bg-gray-800 ring-1 ring-purple-500/50' : ''}`}
+          >
+            <div className="text-purple-300">
+              <span className="block font-bold">Nível 3: Ultra</span>
+              <span className="text-[10px] opacity-70">Tudo Liberado (Live/Carteira)</span>
+            </div>
+            {user.plan === 'ultra' && <span className="text-green-500 text-lg">✓</span>}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

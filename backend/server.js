@@ -148,6 +148,29 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+// --- ROTA DE DEBUG PARA ALTERAR PLANOS (NOVO) ---
+app.post('/debug/toggle-plan', async (req, res) => {
+    const { phone, plan, hasLiveAccess, hasWalletAccess } = req.body;
+    console.log(`[DEBUG] Force Update: ${phone} -> ${plan}`);
+
+    // Limpa apenas números
+    const cleanPhone = phone ? phone.replace(/\D/g, '') : null;
+
+    if (!cleanPhone) return res.status(400).json({ error: 'Phone required' });
+
+    await prisma.user.updateMany({
+        where: { phone: cleanPhone },
+        data: {
+            plan: plan || 'basic',
+            hasLiveAccess: !!hasLiveAccess,
+            hasWalletAccess: !!hasWalletAccess, // Garante booleano
+            status: 'active'
+        }
+    });
+
+    res.json({ success: true, plan, hasLiveAccess, hasWalletAccess });
+});
+
 // --- ROTA DE LOGIN POR TELEFONE (NOVO) ---
 app.post('/auth/login-phone', async (req, res) => {
     const { phone } = req.body;
