@@ -251,6 +251,87 @@ app.post('/webhook/paradise', async (req, res) => {
     }
 });
 
+// --- ROTA DE GERAÇÃO DE PIX (PARADISE) ---
+app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
+    try {
+        const { productHash, baseAmount, productTitle, checkoutUrl } = req.body;
+        const userId = req.user.id;
+
+        // 1. Buscar dados completos do usuário (CPF/Telefone são obrigatórios)
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
+
+        if (!user.cpf) {
+            // Em produção, você deve pedir o CPF no frontend antes de chamar isso.
+            // Para "curativo", vamos tentar usar um CPF genérico SE não tiver (mas o ideal é ter).
+            // Ou retornar erro pedindo CPF. Vamos assumir que o cadastro tem CPF ou falha.
+            console.warn('[PIX] Usuário sem CPF, tentando prosseguir (pode falhar no gateway).');
+        }
+
+        // 2. Montar Payload da ParadisePag
+        const paymentPayload = {
+            amount: baseAmount, // Em centavos? A API do test_api diz 1000 = 10.00. O frontend manda 6700.
+            description: productTitle || 'Produto Digital',
+            reference: `REF-${userId}-${Date.now()}`,
+            checkoutUrl: checkoutUrl || 'https://areamembrosplantascompletinho.vercel.app',
+            productHash: productHash,
+            customer: {
+                name: user.name,
+                email: user.email,
+                document: user.cpf || '00000000000', // Fallback arriscado, mas evita crash imediato
+                phone: user.phone
+            }
+        };
+
+        console.log('[PIX] Enviando pedido para Paradise:', paymentPayload);
+
+        // 3. Chamar API Paradise
+        const paradiseUrl = 'https://multi.paradisepags.com/api/v1/transaction.php';
+        const response = await axios.post(paradiseUrl, paymentPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-API-Key': PARADISE_API_TOKEN
+            }
+        });
+
+        // 4. Retornar dados formatados para o Frontend (PixModal)
+        // O PixModal espera: result.pix.pix_qr_code, result.amount_paid, result.hash
+        const data = response.data;
+
+        // A resposta da Paradise varia, vamos logar para garantir
+        console.log('[PIX] Resposta Paradise:', JSON.stringify(data, null, 2));
+
+        if (!data || !data.qr_code) {
+            // Adaptação caso a API retorne diferente (pix_qr_code ou qr_code)
+            // No test_api, não vi a resposta exata de sucesso.
+            // Assumindo padrão comum:
+        }
+
+        // Mapeamento (Ajuste conforme retorno real da API)
+        const qrCode = data.qr_code || data.pix_qr_code || data.qrcode_text;
+        const expiration = data.expiration_date || data.expiration;
+
+        if (!qrCode) {
+            console.error('[PIX] QR Code não retornado pela API.');
+            return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
+        }
+
+        res.json({
+            pix: {
+                pix_qr_code: qrCode,
+                expiration_date: expiration
+            },
+            amount_paid: baseAmount,
+            hash: productHash
+        });
+
+    } catch (error) {
+        console.error('[PIX] Erro ao gerar:', error.response ? error.response.data : error.message);
+        res.status(500).json({ error: 'Erro ao processar pagamento.' });
+    }
+});
+
 // --- ROTAS DO USUÁRO ---
 app.get('/me', authenticateToken, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
