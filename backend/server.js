@@ -470,16 +470,18 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
                 align: 'center'
             });
 
-        // LINHA (Offset Fixo para evitar gap de fonte)
-        const lineOffset = nameSize + 5;
+        // LINHA (AGGRESSIVE FLUSH & DARK COLOR)
+        // Offset reduzido para 'nameSize - 5' para colisão visual (flush)
+        const lineOffset = nameSize - 5;
         const lineY = cursorY + lineOffset;
 
         const lineW = 400;
         doc.moveTo(CENTER_X - (lineW / 2), lineY)
             .lineTo(CENTER_X + (lineW / 2), lineY)
-            .strokeColor('#d4c8be').stroke();
+            .strokeColor('#4a4a4a').stroke(); // COR ALTERADA DE #d4c8be PARA #4a4a4a
 
-        cursorY = lineY + 30;
+        // Pula para o próximo bloco (compensa o offset negativo)
+        cursorY = lineY + 35; // +30 original + 5 compensação
 
         // Textos Separados
         const fixTextW = 550;
@@ -509,9 +511,6 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         // DATE + TIME (NEW)
         const now = new Date();
         const hoje = now.toLocaleDateString('pt-BR');
-        // Usar timezone fixo ou do servidor? Como é servidor remoto, melhor garantir -3h se for necessário,
-        // mas toLocaleTimeString no browser seria melhor.
-        // Node usa UTC por padrão. Vamos tentar pegar o Timezone correto, mas 'pt-BR' com 'timeZone: America/Sao_Paulo' é o mais seguro.
         const hora = now.toLocaleTimeString('pt-BR', {
             hour: '2-digit',
             minute: '2-digit',
@@ -531,7 +530,6 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         const SIG_2_X = CENTER_X + (SIG_GAP / 2);
 
         // Assinatura 1 (Instrutora Responsável)
-        // User disse "mais rente ainda". Baixando para -25.
         try {
             const s1 = path.join(assetsDir, 'M.Luiza.png');
             if (fs.existsSync(s1)) {
