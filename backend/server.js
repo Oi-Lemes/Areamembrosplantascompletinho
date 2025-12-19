@@ -17,8 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const execFileAsync = promisify(execFile);
 
-// --- DADOS ESTÁTICOS DOS MÓDULOS (Mantidos no Código para Simplicidade) ---
-// Em uma versão futura poderia ir para o banco também, mas não é o foco agora.
+// --- DADOS ESTÁTICOS DOS MÓDULOS ---
 const MOCK_MODULOS = [
     {
         id: 1,
@@ -117,14 +116,8 @@ if (process.env.FRONTEND_URL) {
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
         if (!origin) return callback(null, true);
-
-        // Se FRONTEND_URL for *, aceita tudo
-        if (process.env.FRONTEND_URL === '*') {
-            return callback(null, true);
-        }
-
+        if (process.env.FRONTEND_URL === '*') return callback(null, true);
         if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
             callback(null, true);
         } else {
@@ -135,13 +128,11 @@ app.use(cors({
     optionsSuccessStatus: 200
 }));
 
-// --- MIDDLEWARE DE AUTH (REAL VIA JWT) ---
+// --- MIDDLEWARE DE AUTH ---
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) return res.sendStatus(401);
-
     jwt.verify(token, JWT_SECRET, (err, user) => {
         if (err) return res.sendStatus(403);
         req.user = user;
@@ -149,14 +140,11 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// --- ROTA DE DEBUG PARA ALTERAR PLANOS (NOVO) ---
+// --- ROTA DE DEBUG ---
 app.post('/debug/toggle-plan', async (req, res) => {
     const { phone, plan, hasLiveAccess, hasWalletAccess } = req.body;
     console.log(`[DEBUG] Force Update: ${phone} -> ${plan}`);
-
-    // Limpa apenas números
     const cleanPhone = phone ? phone.replace(/\D/g, '') : null;
-
     if (!cleanPhone) return res.status(400).json({ error: 'Phone required' });
 
     await prisma.user.updateMany({
@@ -172,35 +160,18 @@ app.post('/debug/toggle-plan', async (req, res) => {
     res.json({ success: true, plan, hasLiveAccess, hasWalletAccess });
 });
 
-// --- ROTA DE LOGIN POR TELEFONE (NOVO) ---
+// --- ROTA DE LOGIN POR TELEFONE ---
 app.post('/auth/login-phone', async (req, res) => {
     const { phone } = req.body;
-
-    // Remove tudo que não for números
     const cleanPhone = phone.replace(/\D/g, '');
-
-    if (!cleanPhone || cleanPhone.length < 10) {
-        return res.status(400).json({ error: 'Número de telefone inválido.' });
-    }
+    if (!cleanPhone || cleanPhone.length < 10) return res.status(400).json({ error: 'Número inválido.' });
 
     try {
-        // Busca usuário pelo telefone
-        const user = await prisma.user.findFirst({
-            where: { phone: cleanPhone }
-        });
+        const user = await prisma.user.findFirst({ where: { phone: cleanPhone } });
+        if (!user) return res.status(404).json({ error: 'Usuário não encontrado. Você já realizou a compra?' });
+        if (user.plan === 'banned' || user.status === 'refunded') return res.status(403).json({ error: 'Acesso revogado.' });
 
-        if (!user) {
-            return res.status(404).json({ error: 'Usuário não encontrado. Você já realizou a compra?' });
-        }
-
-        // Verifica se o plano é válido (se foi reembolsado, pode virar 'free' ou 'banned')
-        if (user.plan === 'banned' || user.status === 'refunded') {
-            return res.status(403).json({ error: 'Acesso revogado.' });
-        }
-
-        // Gera token JWT Real
         const token = jwt.sign({ id: user.id, name: user.name, plan: user.plan }, JWT_SECRET, { expiresIn: '30d' });
-
         res.json({
             token,
             user: {
@@ -211,34 +182,25 @@ app.post('/auth/login-phone', async (req, res) => {
                 hasWalletAccess: user.hasWalletAccess
             }
         });
-
     } catch (error) {
         console.error('Erro no login:', error);
         res.status(500).json({ error: 'Erro interno no servidor.' });
     }
 });
 
-
-// --- WEBHOOK PARADISE PAGS (NOVO) ---
+// --- WEBHOOK PARADISE PAGS ---
 app.post('/webhook/paradise', async (req, res) => {
     const event = req.body;
-    console.log('[WEBHOOK] Recebido:', JSON.stringify(event, null, 2));
-
     try {
         const eventType = event.event || event.status;
-        // Tenta pegar de várias formas
         const product = event.product || {};
-        const tracking = event.tracking || {};
-        const incomingHash = product.hash || product.id || event.product_hash || tracking.product_hash;
-        const client = event.client || event.customer || {}; // Garante que client existe
+        const incomingHash = product.hash || product.id || event.product_hash || (event.tracking || {}).product_hash;
+        const client = event.client || event.customer || {};
 
         console.log(`[WEBHOOK] Evento: ${eventType} | Produto: ${incomingHash}`);
 
-        // --- FILTRO DE PRODUTO ---
         const TARGET_PRODUCT_HASH = process.env.PARADISE_PRODUCT_HASH;
-        // Só verifica se tiver hash configurado e se o evento tiver produto
         if (TARGET_PRODUCT_HASH && incomingHash && incomingHash !== TARGET_PRODUCT_HASH) {
-            console.log(`[WEBHOOK] Ignorado: Produto incorreto (${incomingHash} !== ${TARGET_PRODUCT_HASH})`);
             return res.status(200).send('Ignorado: Produto diferente');
         }
 
@@ -249,86 +211,49 @@ app.post('/webhook/paradise', async (req, res) => {
             const cpf = client.cpf || client.document;
 
             if (email) {
-                // Prevent Unique Constraint Fix (P2002)
-                // If email exists on ANOTHER phone, we ignore it for this new user to avoid crash.
                 const userWithEmail = await prisma.user.findFirst({ where: { email: email } });
                 if (userWithEmail && userWithEmail.phone !== phone) {
-                    console.log(`[WEBHOOK] Email ${email} em uso por ${userWithEmail.phone}. Gerando alias.`);
                     email = `${phone}@conflict.verificar`;
                 }
             }
 
             if (!phone) {
-                console.warn('[WEBHOOK] Telefone não recebido. Ignorando criação por enquanto.');
                 return res.status(200).send('OK, mas sem telefone');
             }
 
-            // Upsert do Usuário
             const user = await prisma.user.upsert({
                 where: { phone: phone },
-                update: {
-                    plan: 'premium',
-                    status: 'active',
-                    name: name,
-                    email: email
-                },
-                create: {
-                    phone: phone,
-                    email: email || `${phone}@sememail.com`,
-                    name: name || 'Aluno Novo',
-                    plan: 'premium',
-                    status: 'active',
-                    cpf: cpf
-                }
+                update: { plan: 'premium', status: 'active', name: name, email: email },
+                create: { phone: phone, email: email || `${phone}@sememail.com`, name: name || 'Aluno Novo', plan: 'premium', status: 'active', cpf: cpf }
             });
-
             console.log(`[WEBHOOK] Usuário APROVADO: ${user.name} (${user.phone})`);
-
         } else if (eventType === 'purchase.refunded' || eventType === 'chargeback') {
             const phone = client.phone ? client.phone.replace(/\D/g, '') : null;
-
             if (phone) {
                 await prisma.user.updateMany({
                     where: { phone: phone },
-                    data: {
-                        plan: 'banned',
-                        status: 'refunded',
-                        hasLiveAccess: false,
-                        hasNinaAccess: false
-                    }
+                    data: { plan: 'banned', status: 'refunded', hasLiveAccess: false, hasNinaAccess: false }
                 });
                 console.log(`[WEBHOOK] Acesso REVOGADO para: ${phone}`);
             }
         }
-
         res.status(200).send('Webhook processado');
-
     } catch (error) {
         console.error('[WEBHOOK] Erro:', error);
         res.status(500).send('Erro no processamento');
     }
 });
 
-// --- ROTA DE GERAÇÃO DE PIX (PARADISE) ---
+// --- ROTA DE GERAÇÃO DE PIX ---
 app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
     try {
         const { productHash, baseAmount, productTitle, checkoutUrl } = req.body;
         const userId = req.user.id;
-
-        // 1. Buscar dados completos do usuário (CPF/Telefone são obrigatórios)
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
-        if (!user.cpf) {
-            // Em produção, você deve pedir o CPF no frontend antes de chamar isso.
-            // Para "curativo", vamos tentar usar um CPF genérico SE não tiver (mas o ideal é ter).
-            // Ou retornar erro pedindo CPF. Vamos assumir que o cadastro tem CPF ou falha.
-            console.warn('[PIX] Usuário sem CPF, tentando prosseguir (pode falhar no gateway).');
-        }
-
-        // 2. Montar Payload da ParadisePag
         const paymentPayload = {
-            amount: baseAmount, // Em centavos? A API do test_api diz 1000 = 10.00. O frontend manda 6700.
+            amount: baseAmount,
             description: productTitle || 'Produto Digital',
             reference: `REF-${userId}-${Date.now()}`,
             checkoutUrl: checkoutUrl || 'https://areamembrosplantascompletinho.vercel.app',
@@ -336,14 +261,11 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
             customer: {
                 name: user.name,
                 email: user.email,
-                document: user.cpf || '00000000000', // Fallback arriscado, mas evita crash imediato
+                document: user.cpf || '00000000000',
                 phone: user.phone
             }
         };
 
-        console.log('[PIX] Enviando pedido para Paradise:', paymentPayload);
-
-        // 3. Chamar API Paradise
         const paradiseUrl = 'https://multi.paradisepags.com/api/v1/transaction.php';
         const response = await axios.post(paradiseUrl, paymentPayload, {
             headers: {
@@ -353,33 +275,14 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
             }
         });
 
-        // 4. Retornar dados formatados para o Frontend (PixModal)
-        // O PixModal espera: result.pix.pix_qr_code, result.amount_paid, result.hash
         const data = response.data;
-
-        // A resposta da Paradise varia, vamos logar para garantir
-        console.log('[PIX] Resposta Paradise:', JSON.stringify(data, null, 2));
-
-        if (!data || !data.qr_code) {
-            // Adaptação caso a API retorne diferente (pix_qr_code ou qr_code)
-            // No test_api, não vi a resposta exata de sucesso.
-            // Assumindo padrão comum:
-        }
-
-        // Mapeamento (Ajuste conforme retorno real da API)
         const qrCode = data.qr_code || data.pix_qr_code || data.qrcode_text;
         const expiration = data.expiration_date || data.expiration;
 
-        if (!qrCode) {
-            console.error('[PIX] QR Code não retornado pela API.');
-            return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
-        }
+        if (!qrCode) return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
 
         res.json({
-            pix: {
-                pix_qr_code: qrCode,
-                expiration_date: expiration
-            },
+            pix: { pix_qr_code: qrCode, expiration_date: expiration },
             amount_paid: baseAmount,
             hash: productHash
         });
@@ -390,35 +293,21 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
     }
 });
 
-// --- ROTAS DO USUÁRO ---
 app.get('/me', authenticateToken, async (req, res) => {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) return res.sendStatus(404);
     res.json(user);
 });
 
-// --- ROTAS DE CONTEÚDO (MODULOS/AULAS) ---
-// Usando MOCK_MODULOS estático para simplificar a migração ( conteúdo não muda muito )
-// Mas o progresso será salvo no banco REAL
-
-app.get('/modulos', authenticateToken, (req, res) => {
-    res.json(MOCK_MODULOS);
-});
-
-// Rota para detalhes de UM módulo (Correção do Erro 404)
+app.get('/modulos', authenticateToken, (req, res) => { res.json(MOCK_MODULOS); });
 app.get('/modulos/:id', authenticateToken, (req, res) => {
     const id = parseInt(req.params.id);
     const modulo = MOCK_MODULOS.find(m => m.id === id);
-
-    if (!modulo) {
-        return res.status(404).json({ error: 'Módulo não encontrado.' });
-    }
-
+    if (!modulo) return res.status(404).json({ error: 'Módulo não encontrado.' });
     res.json(modulo);
 });
 
 app.get('/progresso', authenticateToken, async (req, res) => {
-    // Busca progresso do banco REAL
     const progressos = await prisma.progresso.findMany({
         where: { userId: req.user.id, concluida: true },
         select: { aulaId: true }
@@ -429,24 +318,12 @@ app.get('/progresso', authenticateToken, async (req, res) => {
 app.post('/aulas/concluir', authenticateToken, async (req, res) => {
     const { aulaId } = req.body;
     const userId = req.user.id;
-
-    const existing = await prisma.progresso.findUnique({
-        where: {
-            userId_aulaId: { userId, aulaId }
-        }
-    });
-
+    const existing = await prisma.progresso.findUnique({ where: { userId_aulaId: { userId, aulaId } } });
     if (existing) {
-        // Toggle (desmarcar)
-        await prisma.progresso.delete({
-            where: { userId_aulaId: { userId, aulaId } }
-        });
+        await prisma.progresso.delete({ where: { userId_aulaId: { userId, aulaId } } });
         res.json({ status: 'desmarcada' });
     } else {
-        // Marcar
-        await prisma.progresso.create({
-            data: { userId, aulaId, concluida: true }
-        });
+        await prisma.progresso.create({ data: { userId, aulaId, concluida: true } });
         res.json({ status: 'marcada' });
     }
 });
@@ -458,7 +335,6 @@ app.get('/progresso-modulos', authenticateToken, async (req, res) => {
         select: { aulaId: true }
     });
     const concluidasSet = new Set(progressos.map(p => p.aulaId));
-
     const resultado = {};
     MOCK_MODULOS.forEach(mod => {
         if (!mod.aulas || mod.aulas.length === 0) {
@@ -471,10 +347,21 @@ app.get('/progresso-modulos', authenticateToken, async (req, res) => {
     res.json(resultado);
 });
 
-// --- ROTA DE GERAÇÃO DE CERTIFICADO (PDFKIT - LAYOUT PREMIUM HARDCODED FINAL) ---
+// --- HELPER TITLE CASE ---
+function toTitleCase(str) {
+    if (!str) return '';
+    return str.toLowerCase().split(' ').map(word => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
+
+// --- ROTA DE GERAÇÃO DE CERTIFICADO ---
 app.post('/gerar-certificado', authenticateToken, async (req, res) => {
     const { safeStudentName } = req.body;
-    const studentName = safeStudentName ? safeStudentName.replace(/_/g, ' ').toUpperCase() : req.user.name.toUpperCase();
+
+    // 1. CLEANUP NAME LOGIC (TITLE CASE)
+    let rawName = safeStudentName ? safeStudentName.replace(/_/g, ' ') : req.user.name;
+    const studentName = toTitleCase(rawName);
 
     try {
         const doc = new PDFDocument({
@@ -488,11 +375,8 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename=certificado_${req.user.id}.pdf`);
         doc.pipe(res);
 
-        // Dimensões A4 Paisagem (Points)
         const WIDTH = 841.89;
         const HEIGHT = 595.28;
-
-        // --- 1. SIDEBAR (33% WIDTH ~ 280-285 pts) ---
         const SIDEBAR_WIDTH = WIDTH * 0.33;
 
         // Background Sidebar
@@ -501,7 +385,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         // Imagem Sidebar
         const assetsDir = path.join(__dirname, 'gerador_certificado', 'img');
         const possibleImages = [
-            path.join(assetsDir, 'ervas.webp'), // Prioridade para o webp original
+            path.join(assetsDir, 'ervas.webp'),
             path.join(assetsDir, 'ervas_fallback.jpg'),
             path.join(assetsDir, 'ervas.png'),
             path.join(__dirname, 'assets', 'cert', 'ervas_fallback.jpg')
@@ -518,12 +402,9 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
                     valign: 'center'
                 });
                 doc.restore();
-            } catch (e) {
-                console.error("Erro imagem sidebar:", e);
-            }
+            } catch (e) { console.error("Erro imagem sidebar:", e); }
         }
 
-        // --- 2. MAIN CONTENT AREA ---
         const CONTENT_START_X = SIDEBAR_WIDTH;
         const CONTENT_WIDTH = WIDTH - SIDEBAR_WIDTH;
         const CENTER_X = CONTENT_START_X + (CONTENT_WIDTH / 2); // Centro visual
@@ -531,10 +412,9 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         // Background Principal
         doc.rect(SIDEBAR_WIDTH, 0, CONTENT_WIDTH, HEIGHT).fill('#F6F1E9');
 
-        // Configurações de posicionamento vertical (Cursor Y)
-        let cursorY = 50; // Margem superior
+        let cursorY = 50;
 
-        // --- MEDALHA ---
+        // Medalha
         try {
             const medal = path.join(assetsDir, 'medalha.png');
             if (fs.existsSync(medal)) {
@@ -573,7 +453,6 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
 
         cursorY += 60;
 
-        // "Este certificado é concedido a"
         doc.fontSize(16).fillColor('#4a4a4a').font('Helvetica')
             .text('Este certificado é concedido a', CONTENT_START_X, cursorY, {
                 width: CONTENT_WIDTH,
@@ -582,7 +461,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
 
         cursorY += 30;
 
-        // NOME DO ALUNO
+        // NOME DO ALUNO (Title Case)
         let nameSize = 40;
         if (studentName.length > 30) nameSize = 32;
         doc.font('Times-Bold').fontSize(nameSize).fillColor('#5d6d5f')
@@ -591,9 +470,8 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
                 align: 'center'
             });
 
-        // FIX: Linha EXATAMENTE abaixo do texto (baseado no tamanho da fonte)
-        // Ignora heightOfString para evitar gap de descender
-        const lineOffset = nameSize + 5; // 40px font + 5px gap = 45px do topo
+        // LINHA (Offset Fixo para evitar gap de fonte)
+        const lineOffset = nameSize + 5;
         const lineY = cursorY + lineOffset;
 
         const lineW = 400;
@@ -601,10 +479,9 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
             .lineTo(CENTER_X + (lineW / 2), lineY)
             .strokeColor('#d4c8be').stroke();
 
-        // Pula para o próximo bloco
         cursorY = lineY + 30;
 
-        // --- TEXTOS SEPARADOS (Fix Overlap) ---
+        // Textos Separados
         const fixTextW = 550;
         const fixTextX = CENTER_X - (fixTextW / 2);
 
@@ -634,7 +511,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
             width: CONTENT_WIDTH, align: 'center'
         });
 
-        // --- ASSINATURAS (Ajustado Y para ficar rente) ---
+        // --- ASSINATURAS ---
         const SIG_Y = HEIGHT - 100;
         const SIG_BOX_W = 180;
         const SIG_GAP = 60;
@@ -642,22 +519,22 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         const SIG_1_X = CENTER_X - SIG_BOX_W - (SIG_GAP / 2);
         const SIG_2_X = CENTER_X + (SIG_GAP / 2);
 
-        // Assinatura 1
-        // Colocando a base da imagem exatamente na linha
+        // Assinatura 1 (Instrutora Responsável)
+        // User disse que "esta precisa ficar rente". Antes (-45) estava floating?
+        // Vou baixar para -35 para colar na linha.
         try {
             const s1 = path.join(assetsDir, 'M.Luiza.png');
             if (fs.existsSync(s1)) {
-                // width: 100. Aspect ~2:1 -> Height ~50.
-                // Se desenhar em SIG_Y - 50, o fundo bate na linha.
-                // Vou desenhar um pouco mais baixo (-45) para "pesar" na linha.
-                doc.image(s1, SIG_1_X + 40, SIG_Y - 45, { width: 100 });
+                doc.image(s1, SIG_1_X + 40, SIG_Y - 35, { width: 100 });
             }
         } catch (e) { }
 
         doc.moveTo(SIG_1_X, SIG_Y).lineTo(SIG_1_X + SIG_BOX_W, SIG_Y).strokeColor('#4a4a4a').stroke();
         doc.fontSize(12).font('Helvetica').text('INSTRUTORA RESPONSÁVEL', SIG_1_X, SIG_Y + 10, { width: SIG_BOX_W, align: 'center' });
 
-        // Assinatura 2
+        // Assinatura 2 (Direção da Escola)
+        // User disse "a outra assinatura está perfeita".
+        // Manter em -45.
         try {
             const s2 = path.join(assetsDir, 'J.padilha.png');
             if (fs.existsSync(s2)) {
@@ -676,8 +553,7 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
     }
 });
 
-// --- ROTA DE CORREÇÃO (SEED) ---
-// Executa a sincronização dos MOCK_MODULOS com o Banco de Dados Real
+// Seed DB
 app.get('/fix-content-db', async (req, res) => {
     try {
         let log = [];
@@ -730,7 +606,6 @@ app.get('/fix-content-db', async (req, res) => {
     }
 });
 
-// Inicia o servidor
 app.listen(PORT, () => {
     console.log(`\n🚀 SERVIDOR REAL (PRISMA) RODANDO NA PORTA ${PORT}`);
     console.log(`💳 Webhook Paradise ativo em /webhook/paradise`);
