@@ -52,13 +52,13 @@ const MOCK_MODULOS = [
         aulas: [{ id: 16, nome: 'Como combinar ervas', videoUrl: '#', ordem: 1 }]
     },
     {
-        id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', aulas: []
+        id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', ordem: 98, aulas: []
     },
     {
-        id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', aulas: []
+        id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', ordem: 100, aulas: []
     },
     {
-        id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: []
+        id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', ordem: 101, aulas: []
     }
 ];
 
