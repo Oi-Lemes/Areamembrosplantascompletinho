@@ -506,8 +506,19 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
 
         cursorY += 50;
 
-        const hoje = new Date().toLocaleDateString('pt-BR');
-        doc.text(`Concluído em: ${hoje}`, CONTENT_START_X, cursorY, {
+        // DATE + TIME (NEW)
+        const now = new Date();
+        const hoje = now.toLocaleDateString('pt-BR');
+        // Usar timezone fixo ou do servidor? Como é servidor remoto, melhor garantir -3h se for necessário,
+        // mas toLocaleTimeString no browser seria melhor.
+        // Node usa UTC por padrão. Vamos tentar pegar o Timezone correto, mas 'pt-BR' com 'timeZone: America/Sao_Paulo' é o mais seguro.
+        const hora = now.toLocaleTimeString('pt-BR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Sao_Paulo'
+        });
+
+        doc.text(`Concluído em: ${hoje} às ${hora}`, CONTENT_START_X, cursorY, {
             width: CONTENT_WIDTH, align: 'center'
         });
 
@@ -520,12 +531,11 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         const SIG_2_X = CENTER_X + (SIG_GAP / 2);
 
         // Assinatura 1 (Instrutora Responsável)
-        // User disse que "esta precisa ficar rente". Antes (-45) estava floating?
-        // Vou baixar para -35 para colar na linha.
+        // User disse "mais rente ainda". Baixando para -25.
         try {
             const s1 = path.join(assetsDir, 'M.Luiza.png');
             if (fs.existsSync(s1)) {
-                doc.image(s1, SIG_1_X + 40, SIG_Y - 35, { width: 100 });
+                doc.image(s1, SIG_1_X + 40, SIG_Y - 25, { width: 100 });
             }
         } catch (e) { }
 
@@ -533,8 +543,6 @@ app.post('/gerar-certificado', authenticateToken, async (req, res) => {
         doc.fontSize(12).font('Helvetica').text('INSTRUTORA RESPONSÁVEL', SIG_1_X, SIG_Y + 10, { width: SIG_BOX_W, align: 'center' });
 
         // Assinatura 2 (Direção da Escola)
-        // User disse "a outra assinatura está perfeita".
-        // Manter em -45.
         try {
             const s2 = path.join(assetsDir, 'J.padilha.png');
             if (fs.existsSync(s2)) {
