@@ -128,126 +128,6 @@ const QUESTIONS = [
         options: ["Um chá gelado", "Um xarope doce", "Uma pílula", "Aplicação de ervas amassadas sobre a pele"],
         explanation: "Emplastros usam a planta diretamente sobre a região afetada.",
         image: "/img/md3.jpg"
-    },
-    {
-        id: 16,
-        question: "A Calêndula é muito usada na cosmética por sua ação:",
-        correctAnswer: 0,
-        options: ["Regeneradora da pele", "Esfoliante agressiva", "Alisante de cabelo", "Bronzeadora"],
-        explanation: "A calêndula acalma e regenera peles sensíveis ou lesionadas.",
-        image: "/img/md4.jpg"
-    },
-    {
-        id: 17,
-        question: "Para fazer um óleo medicado, qual a base mais comum?",
-        correctAnswer: 1,
-        options: ["Água", "Óleo Vegetal (ex: Girassol, Coco)", "Vinagre", "Álcool 70%"],
-        explanation: "Óleos vegetais veiculam bem os princípios lipossolúveis das plantas.",
-        image: "/img/md5.jpg"
-    },
-    {
-        id: 18,
-        question: "O Hibisco é conhecido por auxiliar em:",
-        correctAnswer: 2,
-        options: ["Ganho de peso", "Sono profundo", "Controle da pressão e efeito diurético", "Dor de ouvido"],
-        explanation: "O hibisco tem antocianinas que ajudam na saúde cardiovascular.",
-        image: "/img/md6.jpg"
-    },
-    {
-        id: 19,
-        question: "Qual o cuidado ao usar frutas cítricas na pele?",
-        correctAnswer: 3,
-        options: ["Nenhum", "Seca a pele", "Hidrata demais", "Risco de queimadura se exposto ao sol"],
-        explanation: "Cítricos contêm substâncias fotossensíveis que mancham e queimam no sol.",
-        image: "/img/md1.jpg"
-    },
-    {
-        id: 20,
-        question: "A 'Garra do Diabo' é usada para:",
-        correctAnswer: 0,
-        options: ["Artrite e inflamações articulares", "Dor de cabeça", "Tosse", "Ansiedade"],
-        explanation: "É um potente anti-inflamatório natural para dores reumáticas.",
-        image: "/img/md2.jpg"
-    },
-    {
-        id: 21,
-        question: "O que é Fitoterapia?",
-        correctAnswer: 1,
-        options: ["Terapia com luz", "Tratamento e prevenção de doenças com plantas", "Terapia com água", "Terapia com animais"],
-        explanation: "Fito (planta) + Terapia (tratamento).",
-        image: "/img/md3.jpg"
-    },
-    {
-        id: 22,
-        question: "A Valeriana é indicada principalmente para:",
-        correctAnswer: 2,
-        options: ["Energia", "Digestão", "Insônia severa e ansiedade", "Cicatrizar feridas"],
-        explanation: "A Valeriana é um dos sedativos naturais mais potentes.",
-        image: "/img/md4.jpg"
-    },
-    {
-        id: 23,
-        question: "O Alecrim, além de tempero, atua como:",
-        correctAnswer: 0,
-        options: ["Estimulante da circulação e memória", "Depressor do sistema nervoso", "Calmante forte", "Sonífero"],
-        explanation: "O alecrim é conhecido como a erva da alegria e da memória.",
-        image: "/img/md5.jpg"
-    },
-    {
-        id: 24,
-        question: "Qual a função da Moringa?",
-        correctAnswer: 3,
-        options: ["Nenhuma, é tóxica", "Apenas ornamental", "Repelente", "Superalimento rico em vitaminas"],
-        explanation: "A Moringa é considerada a 'árvore da vida' por seu alto valor nutricional.",
-        image: "/img/md6.jpg"
-    },
-    {
-        id: 25,
-        question: "O que é 'Sinergia' em fitoaromaterapia?",
-        correctAnswer: 1,
-        options: ["Quando uma planta anula a outra", "Combinação onde o efeito conjunto é maior que a soma das partes", "Usar apenas uma planta", "Diluição em água"],
-        explanation: "Plantas combinadas corretamente potencializam os efeitos umas das outras.",
-        image: "/img/md1.jpg"
-    },
-    {
-        id: 26,
-        question: "O Pata-de-Vaca é conhecido por ajudar a controlar:",
-        correctAnswer: 0,
-        options: ["Diabetes (Glicemia)", "Colesterol", "Pressão Alta", "Febre"],
-        explanation: "Estudos indicam potencial hipoglicemiante na pata-de-vaca.",
-        image: "/img/md2.jpg"
-    },
-    {
-        id: 27,
-        question: "A 'Tanchagem' é excelente para:",
-        correctAnswer: 2,
-        options: ["Dor muscular", "Ansiedade", "Inflamações de garganta e feridas", "Emagrecimento"],
-        explanation: "A tanchagem é anti-inflamatória e antimicrobiana, ótima para gargarejos.",
-        image: "/img/md3.jpg"
-    },
-    {
-        id: 28,
-        question: "O Cravo-da-Índia tem forte ação:",
-        correctAnswer: 3,
-        options: ["Hidratante", "Calmante", "Sonífera", "Anestésica e Antisséptica"],
-        explanation: "O óleo de cravo é usado historicamente para dor de dente por seu poder anestésico.",
-        image: "/img/md4.jpg"
-    },
-    {
-        id: 29,
-        question: "Qual destas plantas é tóxica se usada em excesso ou sem preparo correto?",
-        correctAnswer: 0,
-        options: ["Confrei (uso interno)", "Hortelã", "Camomila", "Erva-Doce"],
-        explanation: "O Confrei possui alcaloides que podem lesar o fígado se ingerido.",
-        image: "/img/md5.jpg"
-    },
-    {
-        id: 30,
-        question: "Qual o objetivo final deste curso?",
-        correctAnswer: 1,
-        options: ["Decorar nomes científicos", "Capacitar o uso seguro e eficaz das plantas medicinais", "Vender produtos químicos", "Nenhum"],
-        explanation: "O foco é a autonomia e saúde através da natureza com segurança.",
-        image: "/img/md6.jpg"
     }
 ];
 
@@ -305,14 +185,14 @@ export default function QuizPage() {
 
     const playSound = (type: 'correct' | 'wrong' | 'win') => {
         try {
-            if (type === 'correct') {
-                acertoAudio.current!.currentTime = 0;
-                acertoAudio.current!.play();
-            } else if (type === 'wrong') {
-                erroAudio.current!.currentTime = 0;
-                erroAudio.current!.play();
-            } else {
-                new Audio(SOUNDS.win).play();
+            const audio = new Audio(SOUNDS[type]);
+            audio.volume = 1.0;
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.error("Audio playback failed:", error);
+                });
             }
         } catch (e) { console.error("Audio error", e); }
     };
