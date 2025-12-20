@@ -223,17 +223,19 @@ export default function DashboardPage() {
       const savedState = localStorage.getItem('quiz_state');
       if (savedState) {
         try {
-          const { currentIndex, gameFinished } = JSON.parse(savedState);
+          const { currentIndex, gameFinished, score } = JSON.parse(savedState);
 
-          // SE TERMINOU O JOGO, É 100%
-          if (gameFinished) {
+          // SE TERMINOU O JOGO OU JÁ TEM NOTA DE APROVAÇÃO (60% = 9/15), É 100%
+          // Isso garante que quem passou veja 100% mesmo se algo falhar no "gameFinished"
+          if (gameFinished || (typeof score === 'number' && score >= 9)) {
             setProgressoModulos(prev => ({ ...prev, 102: 100 }));
             return;
           }
 
           if (typeof currentIndex === 'number') {
-            // Calcula % baseada em 15 questões
-            const quizPercent = Math.round(((currentIndex) / 15) * 100);
+            // Calcula % baseada em 15 questões.
+            // (currentIndex + 1) pois o index começa em 0.
+            const quizPercent = Math.round(((currentIndex + 1) / 15) * 100);
 
             setProgressoModulos(prev => {
               // Só atualiza se o backend não disser que já completou (100) e se não for 100 localmente ainda

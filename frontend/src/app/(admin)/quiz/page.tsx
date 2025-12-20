@@ -431,15 +431,14 @@ export default function QuizPage() {
                             Refazer Prova 🔄
                         </motion.button>
 
-                        <Link href="/dashboard">
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="w-full md:w-auto px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold shadow-lg transition-all"
-                            >
-                                Voltar ao Dashboard 🏠
-                            </motion.button>
-                        </Link>
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => router.push('/dashboard')}
+                            className="w-full md:w-auto px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold shadow-lg transition-all"
+                        >
+                            Voltar ao Dashboard 🏠
+                        </motion.button>
                     </div>
                 </motion.div>
             </div>
