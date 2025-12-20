@@ -112,6 +112,9 @@ export default function AulaPage() {
     const token = localStorage.getItem('token');
     if (!token) return;
 
+    // Lógica de Toggle: Se já está concluída, vamos desmarcar (enviar false).
+    const novoStatus = !isConcluida;
+
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
       await fetch(`${backendUrl}/aulas/concluir`, {
@@ -120,15 +123,22 @@ export default function AulaPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ aulaId: aulaAtual.id })
+        body: JSON.stringify({ aulaId: aulaAtual.id, completed: novoStatus })
       });
+
+      // Atualiza estado local imediatamente para feedback visual rápido
+      if (novoStatus) {
+        setAulasConcluidas(prev => [...prev, aulaAtual.id]);
+      } else {
+        setAulasConcluidas(prev => prev.filter(id => id !== aulaAtual.id));
+      }
 
       // Força evento de storage para atualizar o Dashboard na mesma aba/outras abas
       const now = Date.now().toString();
       localStorage.setItem('aula_concluida', now);
       window.dispatchEvent(new Event('storage'));
     } catch (error) {
-      console.error("Erro ao marcar aula como concluída:", error);
+      console.error("Erro ao alterar status da aula:", error);
     }
   };
 

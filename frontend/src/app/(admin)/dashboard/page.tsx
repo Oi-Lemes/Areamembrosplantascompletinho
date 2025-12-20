@@ -344,9 +344,7 @@ export default function DashboardPage() {
     102: 7, // Quiz
     100: 8, // Certificado
     101: 9, // Carteira
-    98: 10, // Live
-    103: 11, // WhatsApp (if ID 103)
-    99: 11   // WhatsApp (if ID 99)
+    98: 10  // Live
   };
 
   const modulosPrincipais = Array.isArray(modulos)
@@ -370,9 +368,7 @@ export default function DashboardPage() {
   const modulosParaExibir = [...modulosPrincipais];
   const modulosFixos = [
     { id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', aulas: [] },
-    { id: 99, nome: 'Grupo no Whatsapp', description: 'Conecte-se com outros alunos.', aulas: [] },
     { id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', aulas: [] },
-    { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
     { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
     { id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', aulas: [{ id: 999 }] }
   ];

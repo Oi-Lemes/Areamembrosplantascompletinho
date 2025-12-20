@@ -131,9 +131,6 @@ const MOCK_MODULOS = [
     },
     {
         id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', ordem: 10, aulas: []
-    },
-    {
-        id: 103, nome: 'Grupo de Alunos', description: 'Entre para o nosso grupo exclusivo no WhatsApp.', ordem: 11, aulas: []
     }
 ];
 
@@ -142,10 +139,14 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo-super-secreto';
 const PARADISE_API_TOKEN = process.env.PARADISE_API_TOKEN;
 
+
 app.use(express.json());
 
+// --- SERVIR ARQUIVOS ESTÁTICOS (UPLOADS) ---
+const uploadsPath = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
+app.use('/uploads', express.static(uploadsPath));
 
-// Configuração do CORS
 const allowedOrigins = [
     'https://www.saberesdafloresta.site',
     'http://localhost:3000',
@@ -431,15 +432,32 @@ app.get('/progresso', authenticateToken, async (req, res) => {
 });
 
 app.post('/aulas/concluir', authenticateToken, async (req, res) => {
-    const { aulaId } = req.body;
+    const { aulaId, completed } = req.body; // Aceita 'completed' (boolean)
     const userId = req.user.id;
-    // Idempotente: Sempre marca como concluída (upsert), nunca desmarca.
-    await prisma.progresso.upsert({
-        where: { userId_aulaId: { userId, aulaId } },
-        update: { concluida: true },
-        create: { userId, aulaId, concluida: true }
-    });
-    res.json({ status: 'marcada' });
+
+    // Default: Se 'completed' não for enviado, assume true (comportamento antigo de apenas marcar)
+    const shouldMark = completed !== undefined ? completed : true;
+
+    if (shouldMark) {
+        // MARCAR COMO CONCLUÍDA
+        await prisma.progresso.upsert({
+            where: { userId_aulaId: { userId, aulaId } },
+            update: { concluida: true },
+            create: { userId, aulaId, concluida: true }
+        });
+        res.json({ status: 'marcada' });
+    } else {
+        // DESMARCAR (REMOVER DO BANCO)
+        try {
+            await prisma.progresso.delete({
+                where: { userId_aulaId: { userId, aulaId } }
+            });
+            res.json({ status: 'desmarcada' });
+        } catch (e) {
+            // Se já não existir, tudo bem
+            res.json({ status: 'desmarcada (ja estava)' });
+        }
+    }
 });
 
 app.get('/progresso-modulos', authenticateToken, async (req, res) => {
