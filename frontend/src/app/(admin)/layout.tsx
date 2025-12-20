@@ -58,7 +58,8 @@ const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
       const aulasConcluidasIdSet = new Set(aulasConcluidasIds);
 
       // Filtrar módulos que não são de certificado para o cálculo
-      const modulosPrincipais = modulosData.filter((m: any) => m.nome && !m.nome.toLowerCase().includes('certificado'));
+      // MUDANÇA: APENAS MÓDULOS 1-6 CONTAM PARA O CÁLCULO DE 100%
+      const modulosPrincipais = modulosData.filter((m: any) => m.id >= 1 && m.id <= 6);
 
       let totalAulas = 0;
       let totalConcluidas = 0;

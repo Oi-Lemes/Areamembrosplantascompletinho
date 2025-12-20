@@ -395,10 +395,12 @@ app.post('/upload-profile-image', authenticateToken, upload.single('profileImage
             return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
         }
 
-        // Gera a URL completa (ajuste o protocolo/host se necessário, mas path relativo costuma funcionar bem no frontend se servido do mesmo domínio)
-        // Como o backend pode estar em outra porta/domínio (Render), é melhor retornar o path relativo e o frontend monta, ou URL completa se tivermos env var.
-        // Vamos retornar o path relativo: /uploads/nome-do-arquivo.
-        const imageUrl = `/uploads/${req.file.filename}`;
+        // Gera a URL completa
+        // Se houver variável de ambiente BACKEND_URL, usa ela. Senão, tenta montar com o host.
+        const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
+        // Garantir que não tenha barra duplicada
+        const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+        const imageUrl = `${cleanBaseUrl}/uploads/${req.file.filename}`;
 
         // Atualiza no Banco
         const updatedUser = await prisma.user.update({
