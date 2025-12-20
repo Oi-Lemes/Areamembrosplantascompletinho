@@ -128,6 +128,15 @@ const MOCK_MODULOS = [
         id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', ordem: 101, aulas: []
     },
     {
+        id: 99,
+        nome: 'Avaliações',
+        description: 'Módulo interno de avaliações',
+        ordem: 99,
+        aulas: [
+            { id: 999, nome: 'Avaliação Final', videoUrl: '#', ordem: 1 }
+        ]
+    },
+    {
         id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', ordem: 102, aulas: [
             { id: 999, nome: 'Avaliação Final', videoUrl: '', ordem: 1 }
         ]
@@ -367,7 +376,7 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         if (!qrCode) return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
 
         res.json({
-            pix: { pix_qr_code: qrCode, expiration_date: expiration },
+            pix: { pix_qr_code: qrCode, expiration_date: expiration, amount_paid: baseAmount, hash: response.data.hash || response.data.id || 'NOHASH' },
             amount_paid: baseAmount,
             hash: productHash
         });
