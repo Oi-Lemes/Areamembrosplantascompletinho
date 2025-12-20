@@ -266,29 +266,43 @@ export default function QuizPage() {
     const passed = percentage >= 60;
     const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
 
-    // Circular Progress Component
-    const CircularProgress = ({ value, total, size = 50, strokeWidth = 5 }: any) => {
-        const radius = (size - strokeWidth) / 2;
-        const circumference = radius * 2 * Math.PI;
-        const offset = circumference - (value / total) * circumference;
+    // --- COMPONENTE CIRCULAR IGUAL AO DASHBOARD ---
+    const ProgressCircle = ({ percentage }: { percentage: number }) => {
+        const radius = 22; // Levemente ajustado para caber no header
+        const stroke = 4;
+        const normalizedRadius = radius - stroke * 2;
+        const circumference = normalizedRadius * 2 * Math.PI;
+        const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
         return (
-            <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
-                <svg className="transform -rotate-90 w-full h-full">
-                    <circle cx={size / 2} cy={size / 2} r={radius} stroke="#334155" strokeWidth={strokeWidth} fill="none" />
+            <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
+                <svg height={radius * 2} width={radius * 2} className="-rotate-90">
                     <circle
-                        cx={size / 2} cy={size / 2} r={radius}
-                        stroke="#10b981"
-                        strokeWidth={strokeWidth}
-                        fill="none"
-                        strokeDasharray={circumference}
-                        strokeDashoffset={offset}
+                        stroke="#ffffff20"
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        r={normalizedRadius}
+                        cx={radius}
+                        cy={radius}
+                    />
+                    <circle
+                        stroke={(() => {
+                            const hue = Math.min((percentage / 100) * 120, 120); // 0 (Red) -> 120 (Green)
+                            return `hsl(${hue}, 80%, 45%)`;
+                        })()}
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        strokeDasharray={circumference + ' ' + circumference}
+                        style={{ strokeDashoffset }}
+                        r={normalizedRadius}
+                        cx={radius}
+                        cy={radius}
+                        className="transition-all duration-300"
                         strokeLinecap="round"
-                        className="transition-all duration-500 ease-out"
                     />
                 </svg>
-                <div className="absolute text-xs font-bold text-white">
-                    {value}/{total}
+                <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-[10px]">
+                    {Math.round(percentage)}%
                 </div>
             </div>
         );
@@ -416,8 +430,8 @@ export default function QuizPage() {
                     </Link>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-400 uppercase tracking-widest hidden md:block">Questão Atual</span>
-                    <CircularProgress value={currentIndex + 1} total={QUESTIONS.length} size={50} />
+                    <span className="text-sm text-gray-400 uppercase tracking-widest hidden md:block">Questão {currentIndex + 1} de {QUESTIONS.length}</span>
+                    <ProgressCircle percentage={Math.round(((currentIndex + 1) / QUESTIONS.length) * 100)} />
                 </div>
             </div>
 
