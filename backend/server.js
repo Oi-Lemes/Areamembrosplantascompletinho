@@ -126,6 +126,9 @@ const MOCK_MODULOS = [
     },
     {
         id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', ordem: 101, aulas: []
+    },
+    {
+        id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', ordem: 102, aulas: []
     }
 ];
 

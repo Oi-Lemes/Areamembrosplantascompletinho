@@ -317,7 +317,8 @@ export default function DashboardPage() {
     { id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', aulas: [] },
     { id: 99, nome: 'Grupo no Whatsapp', description: 'Conecte-se com outros alunos.', aulas: [] },
     { id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', aulas: [] },
-    { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] }
+    { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
+    { id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', aulas: [] }
   ];
   // Adiciona módulos fixos se não existirem
   modulosFixos.forEach(mf => { if (!modulosParaExibir.some(m => m.id === mf.id)) modulosParaExibir.push(mf); });
@@ -377,12 +378,17 @@ export default function DashboardPage() {
             destinationUrl = '#'; imageUrl = '/img/md9.jpg';
             isLockedByProgress = true;
             lockMessage = "Acesso liberado após a Live";
-          } else if (modulo.nome.toLowerCase().includes('carteira')) {
-            destinationUrl = '/carteira'; imageUrl = '/img/ABRATH.png';
             if (userPlan !== 'ultra' && !user?.hasWalletAccess) { // hasWalletAccess cobre Certificado e Carteira
               isPaywalled = true;
               lockMessage = "Exclusivo do plano Ultra ou compre agora";
               purchaseProductKey = 'wallet'; // Chave do Produto Carteira
+            }
+          } else if (modulo.nome.toLowerCase().includes('quiz')) {
+            destinationUrl = '/quiz'; imageUrl = '/img/md3.jpg';
+            // Bloqueia se não concluiu o curso
+            if (!cursoConcluido) {
+              isLockedByProgress = true;
+              lockMessage = "Conclua todas as aulas para liberar o Quiz Final";
             }
           }
 
