@@ -159,13 +159,15 @@ export default function QuizPage() {
         // Load state
         const savedState = localStorage.getItem('quiz_state');
         if (savedState) {
-            const parsed = JSON.parse(savedState);
-            // Only restore if not finished or if user wants to see result
-            if (!parsed.gameFinished) {
-                setCurrentIndex(parsed.currentIndex);
-                setScore(parsed.score);
-                setStarted(true);
-            }
+            try {
+                const parsed = JSON.parse(savedState);
+                // Only restore if not finished or if user wants to see result
+                if (!parsed.gameFinished) {
+                    setCurrentIndex(parsed.currentIndex);
+                    setScore(parsed.score);
+                    setStarted(true);
+                }
+            } catch (e) { console.error("Erro loading quiz", e); }
         }
 
         // Init Audio
@@ -193,34 +195,6 @@ export default function QuizPage() {
                 });
             }
         } catch (e) { console.error("Audio error", e); }
-    };
-
-    // Função para imprimir direto do Quiz (usa a mesma lógica da página de certificado)
-    const [isGenerating, setIsGenerating] = useState(false);
-    const handlePrintCertificate = async () => {
-        setIsGenerating(true);
-        try {
-            const token = localStorage.getItem('token');
-            const response = await fetch(`/api/certificate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ safeStudentName: null }), // Backend usa o nome do user se for null
-            });
-            if (!response.ok) throw new Error('Erro ao gerar');
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `meu_certificado.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
-        } catch (e) {
-            alert('Erro ao gerar certificado. Tente novamente.');
-        } finally {
-            setIsGenerating(false);
-        }
     };
 
     const throwConfetti = () => {
@@ -287,7 +261,10 @@ export default function QuizPage() {
 
     const percentage = Math.round((score / QUESTIONS.length) * 100);
     const passed = percentage >= 60;
-    const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
+
+    // PROGRESSO INTERNO DO QUIZ: Agora começa em 0% e vai até 100%
+    // A cada questão, avança uma fração.
+    const progress = Math.round((currentIndex / QUESTIONS.length) * 100);
 
     // --- COMPONENTE CIRCULAR IGUAL AO DASHBOARD ---
     const ProgressCircle = ({ percentage }: { percentage: number }) => {
@@ -333,7 +310,6 @@ export default function QuizPage() {
 
     // VIEW
     if (!started) {
-        // (Mantido igual)
         return (
             <div className="min-h-screen bg-[url('/img/fundo.png')] bg-cover bg-center flex flex-col items-center justify-center p-4 relative">
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
@@ -447,6 +423,9 @@ export default function QuizPage() {
 
     const q = QUESTIONS[currentIndex];
 
+    // Se q for undefined (bug de indice), fallback
+    if (!q) return <div className="text-white">Carregando questão...</div>;
+
     return (
         <div className="min-h-screen bg-black/90 flex flex-col relative font-sans overflow-hidden">
 
@@ -459,7 +438,7 @@ export default function QuizPage() {
                 </div>
                 <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-400 uppercase tracking-widest hidden md:block">Questão {currentIndex + 1} de {QUESTIONS.length}</span>
-                    <ProgressCircle percentage={Math.round(((currentIndex + 1) / QUESTIONS.length) * 100)} />
+                    <ProgressCircle percentage={progress} />
                 </div>
             </div>
 
@@ -491,7 +470,7 @@ export default function QuizPage() {
                             </div>
                         </div>
 
-                        {/* Mobile Image Strip (Optional or removed for cleanliness, keeping simple) */}
+                        {/* Mobile Image Strip */}
                         <div className="md:hidden w-full flex justify-between items-center mb-4 px-2">
                             <span className="bg-white/10 text-white px-3 py-1 rounded-full text-xs font-bold">
                                 Questão {currentIndex + 1}

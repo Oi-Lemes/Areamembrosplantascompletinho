@@ -146,7 +146,9 @@ app.use(express.json());
 const allowedOrigins = [
     'https://www.saberesdafloresta.site',
     'http://localhost:3000',
-    'http://localhost:3002'
+    'http://localhost:3002',
+    'https://areamembrosplantascompletinho-9n1c.vercel.app',
+    'https://areamembrosplantascompletinho-9n1c.vercel.app'
 ];
 
 if (process.env.FRONTEND_URL) {
