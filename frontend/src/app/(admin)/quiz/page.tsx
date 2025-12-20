@@ -231,6 +231,52 @@ export default function QuizPage() {
         }
     };
 
+    const percentage = Math.round((score / QUESTIONS.length) * 100);
+    const passed = percentage >= 60;
+    const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
+
+    // --- COMPONENTE CIRCULAR IGUAL AO DASHBOARD ---
+    const ProgressCircle = ({ percentage }: { percentage: number }) => {
+        const radius = 22; // Levemente ajustado para caber no header
+        const stroke = 4;
+        const normalizedRadius = radius - stroke * 2;
+        const circumference = normalizedRadius * 2 * Math.PI;
+        const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+        return (
+            <div className="relative flex items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
+                <svg height={radius * 2} width={radius * 2} className="-rotate-90">
+                    <circle
+                        stroke="#ffffff20"
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        r={normalizedRadius}
+                        cx={radius}
+                        cy={radius}
+                    />
+                    <circle
+                        stroke={(() => {
+                            const hue = Math.min((percentage / 100) * 120, 120); // 0 (Red) -> 120 (Green)
+                            return `hsl(${hue}, 80%, 45%)`;
+                        })()}
+                        fill="transparent"
+                        strokeWidth={stroke}
+                        strokeDasharray={circumference + ' ' + circumference}
+                        style={{ strokeDashoffset }}
+                        r={normalizedRadius}
+                        cx={radius}
+                        cy={radius}
+                        className="transition-all duration-300"
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-[10px]">
+                    {Math.round(percentage)}%
+                </div>
+            </div>
+        );
+    }
+
     // VIEW
     if (!started) {
         // (Mantido igual)
