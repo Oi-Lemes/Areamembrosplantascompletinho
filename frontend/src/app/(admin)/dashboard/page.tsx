@@ -389,6 +389,8 @@ export default function DashboardPage() {
             destinationUrl = '#'; imageUrl = '/img/md9.jpg';
             isLockedByProgress = true;
             lockMessage = "Acesso liberado após a Live";
+          } else if (modulo.nome.toLowerCase().includes('carteira')) {
+            destinationUrl = '/carteira'; imageUrl = '/img/ABRATH.png';
             if (userPlan !== 'ultra' && !user?.hasWalletAccess) { // hasWalletAccess cobre Certificado e Carteira
               isPaywalled = true;
               lockMessage = "Exclusivo do plano Ultra ou compre agora";
