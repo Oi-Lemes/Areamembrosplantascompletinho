@@ -318,7 +318,8 @@ export default function DashboardPage() {
     { id: 99, nome: 'Grupo no Whatsapp', description: 'Conecte-se com outros alunos.', aulas: [] },
     { id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', aulas: [] },
     { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
-    { id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', aulas: [] }
+    { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
+    { id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', aulas: [{ id: 999 }] }
   ];
   // Adiciona módulos fixos se não existirem
   modulosFixos.forEach(mf => { if (!modulosParaExibir.some(m => m.id === mf.id)) modulosParaExibir.push(mf); });
@@ -361,7 +362,17 @@ export default function DashboardPage() {
           }
           if (modulo.nome.toLowerCase().includes('certificado')) {
             destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
-            if (!cursoConcluido) { isLockedByProgress = true; lockMessage = "Conclua todos os módulos para emitir"; }
+            destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
+            // Lógica de bloqueio do Certificado: Depende do Quiz (Modulo 102)
+            const quizProgress = progressoModulos[102] ?? 0;
+            const quizCompleted = quizProgress >= 100;
+
+            if (!cursoConcluido) {
+              isLockedByProgress = true; lockMessage = "Conclua todas as aulas para emitir";
+            } else if (!quizCompleted) {
+              isLockedByProgress = true;
+              lockMessage = "Seja aprovado no Quiz (60%) para liberar";
+            }
             else if (userPlan === 'basic' && !user?.hasWalletAccess) { // hasWalletAccess cobre Certificado e Carteira
               isPaywalled = true; isLockedByProgress = false;
               lockMessage = "Adquira o certificado para emitir";

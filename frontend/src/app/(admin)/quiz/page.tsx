@@ -5,86 +5,263 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 
-// --- DATA ---
+// --- DATABASE DE 30 PERGUNTAS SOBRE PLANTAS MEDICINAIS ---
 const QUESTIONS = [
     {
         id: 1,
-        question: "Qual é o principal benefício do chá de camomila?",
+        question: "Qual é a principal função da Tintura de Camomila?",
         correctAnswer: 1,
-        options: [
-            "Aumentar a energia e foco",
-            "Promover o relaxamento e sono",
-            "Curar dores musculares",
-            "Desintoxicar o fígado"
-        ],
-        explanation: "A camomila possui apigenina, um antioxidante que promove sonolência e combate a insônia.",
-        image: "/img/md1.jpg" // Local fallback priority
+        options: ["Energético Natural", "Calmante e Digestivo", "Cicatrizante Potente", "Repelente de Insetos"],
+        explanation: "A camomila é consagrada por suas propriedades calmantes e auxiliares na digestão.",
+        image: "/img/md1.jpg"
     },
     {
         id: 2,
-        question: "O que é uma tintura medicinal?",
-        correctAnswer: 0,
-        options: [
-            "Extração em álcool de cereais",
-            "Chá feito com água fervendo",
-            "Pomada aplicada na pele",
-            "Suco de ervas frescas"
-        ],
-        explanation: "Tinturas usam álcool para extrair compostos que a água sozinha não consegue dissolver.",
+        question: "O Quebra-Pedra é popularmente usado para tratar qual órgão?",
+        correctAnswer: 2,
+        options: ["Coração", "Hígado", "Rins", "Pulmão"],
+        explanation: "O chá de quebra-pedra é tradicionalmente utilizado para auxiliar na eliminação de cálculos renais.",
         image: "/img/md2.jpg"
     },
     {
         id: 3,
-        question: "Qual destas cascas é rica em Pectina?",
-        correctAnswer: 2,
-        options: [
-            "Casca de Ovo",
-            "Casca de Noz",
-            "Casca de Laranja/Limão",
-            "Casca de Batata"
-        ],
-        explanation: "As cascas cítricas são fontes abundantes de pectina, excelente para a digestão e colesterol.",
+        question: "Qual destas plantas é ideal para aliviar queimaduras leves?",
+        correctAnswer: 0,
+        options: ["Babosa (Aloe Vera)", "Hortelã", "Alecrim", "Pimenta"],
+        explanation: "O gel da babosa tem ação refrescante e cicatrizante, ideal para queimaduras.",
         image: "/img/md3.jpg"
     },
     {
         id: 4,
-        question: "A 'Vela de massagem' serve principalmente para:",
+        question: "O Guaco é famoso na medicina popular por atuar como:",
         correctAnswer: 1,
-        options: [
-            "Iluminar ambientes escuros",
-            "Hidratação e relaxamento muscular",
-            "Repelir mosquitos",
-            "Temperar saladas"
-        ],
-        explanation: "Feita com óleos vegetais, ela derrete em baixa temperatura e vira um óleo morno terapêutico.",
+        options: ["Diurético", "Expectorante / Broncodilatador", "Laxante", "Estimulante"],
+        explanation: "O xarope de guaco é amplamente usado para tosse e bronquite.",
         image: "/img/md4.jpg"
     },
     {
         id: 5,
-        question: "Qual o melhor mel para fins medicinais?",
+        question: "Para que serve a técnica de 'Maceração'?",
         correctAnswer: 3,
-        options: [
-            "Mel de mercado (pasteurizado)",
-            "Xarope de milho",
-            "Melado de cana",
-            "Mel cru e puro"
-        ],
-        explanation: "O mel cru preserva enzimas e propriedades antibacterianas que são perdidas no aquecimento.",
+        options: ["Ferver a planta", "Congelar a planta", "Queimar a planta", "Extrair ativos a frio em líquido"],
+        explanation: "Maceração consiste em deixar a planta de molho (água, álcool ou óleo) para extrair seus princípios.",
         image: "/img/md5.jpg"
+    },
+    {
+        id: 6,
+        question: "Qual óleo essencial é conhecido por ser 'O Rei' dos óleos e cicatrizante universal?",
+        correctAnswer: 0,
+        options: ["Lavanda", "Limão", "Eucalipto", "Cravo"],
+        explanation: "A Lavanda é versátil, segura e excelente cicatrizante e calmante.",
+        image: "/img/md6.jpg"
+    },
+    {
+        id: 7,
+        question: "A Erva-Cidreira (Melissa) é indicada para:",
+        correctAnswer: 2,
+        options: ["Dor de dente", "Fortalecer ossos", "Ansiedade e Insônia", "Ganho de massa muscular"],
+        explanation: "A Melissa tem forte ação no sistema nervoso, reduzindo ansiedade.",
+        image: "/img/md1.jpg"
+    },
+    {
+        id: 8,
+        question: "O que caracteriza uma 'Infusão'?",
+        correctAnswer: 1,
+        options: ["Ferver a planta junto com a água", "Jogar água fervente sobre a planta e tampar", "Comer a folha crua", "Bater no liquidificador"],
+        explanation: "Infusão é usada para partes delicadas (folhas, flores), preservando óleos voláteis.",
+        image: "/img/md2.jpg"
+    },
+    {
+        id: 9,
+        question: "O Boldo é classicamente associado a melhoras em:",
+        correctAnswer: 0,
+        options: ["Digestão e ressaca", "Visão", "Audição", "Crescimento de cabelo"],
+        explanation: "O boldo estimula a produção de bile, ajudando na digestão de gorduras.",
+        image: "/img/md3.jpg"
+    },
+    {
+        id: 10,
+        question: "Qual parte da planta usamos para fazer chá de Gengibre (Decocção)?",
+        correctAnswer: 3,
+        options: ["Folha", "Flor", "Semente", "Rizoma (Raiz)"],
+        explanation: "Por ser uma parte dura, o rizoma do gengibre precisa ser fervido (decocção).",
+        image: "/img/md4.jpg"
+    },
+    {
+        id: 11,
+        question: "A Arnica é muito utilizada externamente para:",
+        correctAnswer: 2,
+        options: ["Azia", "Tosse", "Contusões e Dores Musculares", "Dor de garganta"],
+        explanation: "Pomadas e tinturas de arnica são excelentes anti-inflamatórios locais.",
+        image: "/img/md5.jpg"
+    },
+    {
+        id: 12,
+        question: "Qual destas NÃO é uma forma de uso seguro de óleos essenciais?",
+        correctAnswer: 1,
+        options: ["Inalação", "Ingestão pura sem orientação", "Massagem (diluído)", "Difusor"],
+        explanation: "Óleos essenciais são super concentrados e a ingestão indevida pode ser tóxica.",
+        image: "/img/md6.jpg"
+    },
+    {
+        id: 13,
+        question: "O Alho é considerado um poderoso:",
+        correctAnswer: 0,
+        options: ["Antibiótico Natural", "Calmante", "Alucinógeno", "Hidratante de pele"],
+        explanation: "O alho possui alicina, com forte ação antimicrobiana.",
+        image: "/img/md1.jpg"
+    },
+    {
+        id: 14,
+        question: "A Espinheira-Santa é famosa no tratamento de:",
+        correctAnswer: 2,
+        options: ["Pé de atleta", "Cárie", "Gastrite e Úlcera", "Dores articulares"],
+        explanation: "Ela protege a mucosa gástrica e reduz a acidez estomacal.",
+        image: "/img/md2.jpg"
+    },
+    {
+        id: 15,
+        question: "O que é um 'Emplastro'?",
+        correctAnswer: 3,
+        options: ["Um chá gelado", "Um xarope doce", "Uma pílula", "Aplicação de ervas amassadas sobre a pele"],
+        explanation: "Emplastros usam a planta diretamente sobre a região afetada.",
+        image: "/img/md3.jpg"
+    },
+    {
+        id: 16,
+        question: "A Calêndula é muito usada na cosmética por sua ação:",
+        correctAnswer: 0,
+        options: ["Regeneradora da pele", "Esfoliante agressiva", "Alisante de cabelo", "Bronzeadora"],
+        explanation: "A calêndula acalma e regenera peles sensíveis ou lesionadas.",
+        image: "/img/md4.jpg"
+    },
+    {
+        id: 17,
+        question: "Para fazer um óleo medicado, qual a base mais comum?",
+        correctAnswer: 1,
+        options: ["Água", "Óleo Vegetal (ex: Girassol, Coco)", "Vinagre", "Álcool 70%"],
+        explanation: "Óleos vegetais veiculam bem os princípios lipossolúveis das plantas.",
+        image: "/img/md5.jpg"
+    },
+    {
+        id: 18,
+        question: "O Hibisco é conhecido por auxiliar em:",
+        correctAnswer: 2,
+        options: ["Ganho de peso", "Sono profundo", "Controle da pressão e efeito diurético", "Dor de ouvido"],
+        explanation: "O hibisco tem antocianinas que ajudam na saúde cardiovascular.",
+        image: "/img/md6.jpg"
+    },
+    {
+        id: 19,
+        question: "Qual o cuidado ao usar frutas cítricas na pele?",
+        correctAnswer: 3,
+        options: ["Nenhum", "Seca a pele", "Hidrata demais", "Risco de queimadura se exposto ao sol"],
+        explanation: "Cítricos contêm substâncias fotossensíveis que mancham e queimam no sol.",
+        image: "/img/md1.jpg"
+    },
+    {
+        id: 20,
+        question: "A 'Garra do Diabo' é usada para:",
+        correctAnswer: 0,
+        options: ["Artrite e inflamações articulares", "Dor de cabeça", "Tosse", "Ansiedade"],
+        explanation: "É um potente anti-inflamatório natural para dores reumáticas.",
+        image: "/img/md2.jpg"
+    },
+    {
+        id: 21,
+        question: "O que é Fitoterapia?",
+        correctAnswer: 1,
+        options: ["Terapia com luz", "Tratamento e prevenção de doenças com plantas", "Terapia com água", "Terapia com animais"],
+        explanation: "Fito (planta) + Terapia (tratamento).",
+        image: "/img/md3.jpg"
+    },
+    {
+        id: 22,
+        question: "A Valeriana é indicada principalmente para:",
+        correctAnswer: 2,
+        options: ["Energia", "Digestão", "Insônia severa e ansiedade", "Cicatrizar feridas"],
+        explanation: "A Valeriana é um dos sedativos naturais mais potentes.",
+        image: "/img/md4.jpg"
+    },
+    {
+        id: 23,
+        question: "O Alecrim, além de tempero, atua como:",
+        correctAnswer: 0,
+        options: ["Estimulante da circulação e memória", "Depressor do sistema nervoso", "Calmante forte", "Sonífero"],
+        explanation: "O alecrim é conhecido como a erva da alegria e da memória.",
+        image: "/img/md5.jpg"
+    },
+    {
+        id: 24,
+        question: "Qual a função da Moringa?",
+        correctAnswer: 3,
+        options: ["Nenhuma, é tóxica", "Apenas ornamental", "Repelente", "Superalimento rico em vitaminas"],
+        explanation: "A Moringa é considerada a 'árvore da vida' por seu alto valor nutricional.",
+        image: "/img/md6.jpg"
+    },
+    {
+        id: 25,
+        question: "O que é 'Sinergia' em fitoaromaterapia?",
+        correctAnswer: 1,
+        options: ["Quando uma planta anula a outra", "Combinação onde o efeito conjunto é maior que a soma das partes", "Usar apenas uma planta", "Diluição em água"],
+        explanation: "Plantas combinadas corretamente potencializam os efeitos umas das outras.",
+        image: "/img/md1.jpg"
+    },
+    {
+        id: 26,
+        question: "O Pata-de-Vaca é conhecido por ajudar a controlar:",
+        correctAnswer: 0,
+        options: ["Diabetes (Glicemia)", "Colesterol", "Pressão Alta", "Febre"],
+        explanation: "Estudos indicam potencial hipoglicemiante na pata-de-vaca.",
+        image: "/img/md2.jpg"
+    },
+    {
+        id: 27,
+        question: "A 'Tanchagem' é excelente para:",
+        correctAnswer: 2,
+        options: ["Dor muscular", "Ansiedade", "Inflamações de garganta e feridas", "Emagrecimento"],
+        explanation: "A tanchagem é anti-inflamatória e antimicrobiana, ótima para gargarejos.",
+        image: "/img/md3.jpg"
+    },
+    {
+        id: 28,
+        question: "O Cravo-da-Índia tem forte ação:",
+        correctAnswer: 3,
+        options: ["Hidratante", "Calmante", "Sonífera", "Anestésica e Antisséptica"],
+        explanation: "O óleo de cravo é usado historicamente para dor de dente por seu poder anestésico.",
+        image: "/img/md4.jpg"
+    },
+    {
+        id: 29,
+        question: "Qual destas plantas é tóxica se usada em excesso ou sem preparo correto?",
+        correctAnswer: 0,
+        options: ["Confrei (uso interno)", "Hortelã", "Camomila", "Erva-Doce"],
+        explanation: "O Confrei possui alcaloides que podem lesar o fígado se ingerido.",
+        image: "/img/md5.jpg"
+    },
+    {
+        id: 30,
+        question: "Qual o objetivo final deste curso?",
+        correctAnswer: 1,
+        options: ["Decorar nomes científicos", "Capacitar o uso seguro e eficaz das plantas medicinais", "Vender produtos químicos", "Nenhum"],
+        explanation: "O foco é a autonomia e saúde através da natureza com segurança.",
+        image: "/img/md6.jpg"
     }
 ];
 
+// Fallback de URL de áudio caso o arquivo local falhe
 const SOUNDS = {
-    correct: "https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg",
-    wrong: "https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg",
+    correct: "/sounds/acerto.mp3",
+    wrong: "/sounds/erro.mp3",
     win: "https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg"
 };
 
 export default function QuizPage() {
     const router = useRouter();
 
-    // State
+    // States
     const [started, setStarted] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -93,15 +270,41 @@ export default function QuizPage() {
     const [gameFinished, setGameFinished] = useState(false);
     const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
-    // Audio
+    // Audio Refs
+    const acertoAudio = useRef<HTMLAudioElement | null>(null);
+    const erroAudio = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        acertoAudio.current = new Audio(SOUNDS.correct);
+        erroAudio.current = new Audio(SOUNDS.wrong);
+    }, []);
+
     const playSound = (type: 'correct' | 'wrong' | 'win') => {
-        const audio = new Audio(SOUNDS[type]);
-        audio.volume = 0.5;
-        audio.play().catch(e => console.log("Audio play failed", e));
+        try {
+            if (type === 'correct') {
+                acertoAudio.current!.currentTime = 0;
+                acertoAudio.current!.play();
+            } else if (type === 'wrong') {
+                erroAudio.current!.currentTime = 0;
+                erroAudio.current!.play();
+            } else {
+                new Audio(SOUNDS.win).play();
+            }
+        } catch (e) { console.error("Audio error", e); }
+    };
+
+    const throwConfetti = () => {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#34d399', '#f59e0b']
+        });
     };
 
     const handleOptionClick = (idx: number) => {
         if (showResult) return;
+
         setSelectedOption(idx);
         const correct = idx === QUESTIONS[currentIndex].correctAnswer;
         setIsCorrect(correct);
@@ -110,13 +313,10 @@ export default function QuizPage() {
         if (correct) {
             setScore(s => s + 1);
             playSound('correct');
+            throwConfetti(); // Confete a cada acerto!
         } else {
             playSound('wrong');
         }
-
-        // Auto advance delay preference? User asked for "dynamic". 
-        // Usually Inlead quizzes show result then require a click or auto-advance.
-        // Let's keep the "Next" button for better UX control, but make it pop.
     };
 
     const nextQuestion = () => {
@@ -125,93 +325,128 @@ export default function QuizPage() {
         if (currentIndex + 1 < QUESTIONS.length) {
             setCurrentIndex(curr => curr + 1);
         } else {
-            setGameFinished(true);
-            if (score >= QUESTIONS.length / 2) playSound('win');
+            finishGame();
+        }
+    };
+
+    const finishGame = async () => {
+        setGameFinished(true);
+        const finalPercentage = Math.round(((score + (isCorrect ? 1 : 0)) / QUESTIONS.length) * 100);
+        // Nota: 'score' ainda não atualizou no closures aqui se foi o último clique? 
+        // Correção: score atualiza no state, mas aqui precisamos do valor final.
+        // Melhor usar um useEffect ou calcular baseado no render.
+        // Simplificando: o setScore é assíncrono. Vamos recalcular:
+        let finalScore = score;
+        // hack: se acabou de acertar esta ultima, o state score ainda não subiu no fluxo síncrono
+        // mas espere, 'nextQuestion' é chamado DEPOIS do clique.
+        // O usuário clica -> showResult=true -> score++ (async).
+        // Usuário clica "Next" -> nextQuestion. Score já deve estar atualizado.
+
+        if (finalScore >= (QUESTIONS.length * 0.6)) {
+            playSound('win');
+            confetti({ particleCount: 500, spread: 120, startVelocity: 45 });
+
+            // Salvar progresso no backend
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL}/aulas/concluir`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ aulaId: 999 }) // ID Mágico da 'Avaliação Final'
+                    });
+                }
+            } catch (e) { console.error("Erro ao salvar quiz", e); }
         }
     };
 
     const progress = ((currentIndex + 1) / QUESTIONS.length) * 100;
+    const percentage = Math.round((score / QUESTIONS.length) * 100);
+    const passed = percentage >= 60;
 
-    // --- RENDERING ---
-
-    // 1. INTRO SCREEN
+    // VIEW
     if (!started) {
         return (
-            <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-                {/* Background blobs */}
-                <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/20 rounded-full blur-[100px]" />
-                    <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-amber-500/20 rounded-full blur-[100px]" />
-                </div>
-
-                <div className="z-10 text-center max-w-md w-full animate-fade-in-up">
-                    <div className="w-32 h-32 mx-auto bg-gradient-to-br from-emerald-400 to-teal-600 rounded-3xl rotate-3 shadow-[0_0_40px_rgba(16,185,129,0.4)] flex items-center justify-center mb-8">
-                        <span className="text-6xl">🌿</span>
-                    </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Quiz Master</h1>
-                    <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                        Teste se você realmente absorveu os conhecimentos ancestrais das plantas.
+            <div className="min-h-screen bg-[url('/img/fundo.png')] bg-cover bg-center flex flex-col items-center justify-center p-4 relative">
+                <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+                <div className="z-10 text-center max-w-2xl w-full animate-fade-in-up bg-black/40 p-10 rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(16,185,129,0.2)]">
+                    <h1 className="text-5xl md:text-7xl font-serif text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300 mb-6 drop-shadow-2xl">
+                        Desafio Final
+                    </h1>
+                    <p className="text-gray-200 text-xl font-light mb-8 max-w-lg mx-auto leading-relaxed">
+                        São <strong>30 perguntas</strong>. Você precisa acertar pelo menos <strong>60%</strong> para obter sua aprovação e liberar o Certificado Oficial.
                     </p>
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.05, boxShadow: "0px 0px 20px rgba(16,185,129,0.6)" }}
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => setStarted(true)}
-                        className="w-full py-4 bg-white text-emerald-900 font-bold text-lg rounded-2xl shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all active:scale-95"
+                        className="px-12 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-2xl rounded-full transition-all"
                     >
-                        Começar Desafio
-                    </button>
+                        INICIAR AVALIAÇÃO 📝
+                    </motion.button>
                 </div>
             </div>
         );
     }
 
-    // 2. RESULTS SCREEN
     if (gameFinished) {
-        const percentage = Math.round((score / QUESTIONS.length) * 100);
-        const passed = percentage >= 70;
-
         return (
-            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4">
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center p-4 relative overflow-hidden">
+                <div className={`absolute inset-0 opacity-20 ${passed ? 'bg-emerald-900' : 'bg-red-900'}`}></div>
                 <motion.div
-                    initial={{ scale: 0.9, opacity: 0 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="w-full max-w-md bg-[#1e293b] rounded-[2rem] p-8 text-center shadow-2xl border border-[#334155] relative overflow-hidden"
+                    className="w-full max-w-2xl bg-[#1e293b]/90 backdrop-blur-xl rounded-[2.5rem] p-10 text-center shadow-2xl border border-[#334155]"
                 >
-                    {passed && <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-teal-500" />}
-
-                    <div className="mb-6 relative inline-block">
-                        <svg className="w-40 h-40 transform -rotate-90">
-                            <circle cx="80" cy="80" r="70" stroke="#334155" strokeWidth="10" fill="transparent" />
-                            <motion.circle
-                                cx="80" cy="80" r="70"
-                                stroke={passed ? "#10b981" : "#f59e0b"}
-                                strokeWidth="10"
-                                fill="transparent"
-                                strokeDasharray="440"
-                                strokeDashoffset={440 - (440 * percentage) / 100}
-                                initial={{ strokeDashoffset: 440 }}
-                                animate={{ strokeDashoffset: 440 - (440 * percentage) / 100 }}
-                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center flex-col">
-                            <span className="text-4xl font-bold text-white">{percentage}%</span>
-                            <span className="text-xs text-gray-400 uppercase tracking-widest">Acerto</span>
+                    <div className="mb-8 flex justify-center">
+                        <div className="relative w-48 h-48">
+                            <svg className="w-full h-full -rotate-90">
+                                <circle cx="96" cy="96" r="88" stroke="#334155" strokeWidth="12" fill="none" />
+                                <motion.circle
+                                    cx="96" cy="96" r="88"
+                                    stroke={passed ? "#10b981" : "#ef4444"}
+                                    strokeWidth="12"
+                                    fill="none"
+                                    strokeDasharray="553"
+                                    strokeDashoffset={553 - (553 * percentage) / 100}
+                                    initial={{ strokeDashoffset: 553 }}
+                                    animate={{ strokeDashoffset: 553 - (553 * percentage) / 100 }}
+                                    transition={{ duration: 2, ease: "easeOut" }}
+                                    strokeLinecap="round"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className={`text-6xl font-bold ${passed ? 'text-emerald-400' : 'text-red-400'}`}>{percentage}%</span>
+                            </div>
                         </div>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-white mb-2">{passed ? "Incrível!" : "Bom esforço!"}</h2>
-                    <p className="text-gray-400 mb-8">
+                    <h2 className="text-4xl font-bold text-white mb-4">{passed ? "APROVADO!" : "Reprovado"}</h2>
+                    <p className="text-lg text-gray-300 mb-10">
                         {passed
-                            ? "Você domina os segredos da natureza."
-                            : "Revise as aulas e tente novamente para masterizar."}
+                            ? "Parabéns! Você demonstrou excelência nos saberes naturais. Seu certificado foi desbloqueado."
+                            : "Você precisa de no mínimo 60% de acerto. Revise o material e tente novamente."}
                     </p>
 
-                    <div className="space-y-3">
-                        <button onClick={() => window.location.reload()} className="w-full py-3 bg-[#334155] hover:bg-[#475569] text-white rounded-xl font-semibold transition-colors">
-                            Tentar Novamente
-                        </button>
-                        <Link href="/dashboard" className="block w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg transition-transform active:scale-95">
-                            Voltar ao Início
+                    <div className="flex gap-4 justify-center">
+                        {!passed && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => window.location.reload()}
+                                className="px-8 py-4 bg-gray-600 hover:bg-gray-500 text-white rounded-xl font-bold"
+                            >
+                                Tentar Novamente
+                            </motion.button>
+                        )}
+                        <Link href="/dashboard">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg"
+                            >
+                                Voltar à Área de Membros
+                            </motion.button>
                         </Link>
                     </div>
                 </motion.div>
@@ -219,120 +454,109 @@ export default function QuizPage() {
         );
     }
 
-    // 3. QUESTION CARD (INLEAD STYLE)
     const q = QUESTIONS[currentIndex];
 
     return (
-        <div className="min-h-screen bg-[#0f172a] flex flex-col items-center justify-center p-4 relative font-sans">
+        <div className="min-h-screen bg-[#0f172a] flex flex-col relative font-sans overflow-hidden">
 
-            {/* Progress Bar Top */}
-            <div className="absolute top-0 left-0 w-full h-2 bg-[#1e293b]">
+            {/* Top Bar Progress */}
+            <div className="w-full h-3 bg-[#1e293b] fixed top-0 left-0 z-50">
                 <motion.div
-                    className="h-full bg-gradient-to-r from-emerald-400 to-teal-500"
+                    className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.5 }}
                 />
             </div>
 
-            <div className="w-full max-w-lg mt-8">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 pt-12">
 
-                {/* Animated Card Switcher */}
                 <AnimatePresence mode='wait'>
                     <motion.div
                         key={currentIndex}
-                        initial={{ x: 50, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -50, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="bg-[#1e293b] rounded-[2rem] overflow-hidden shadow-2xl border border-[#334155] flex flex-col"
+                        initial={{ y: 50, opacity: 0, scale: 0.95 }}
+                        animate={{ y: 0, opacity: 1, scale: 1 }}
+                        exit={{ y: -50, opacity: 0, scale: 0.95 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                        className="w-full max-w-4xl bg-[#1e293b] rounded-[3rem] overflow-hidden shadow-2xl border border-[#334155] flex flex-col md:flex-row min-h-[60vh] md:min-h-[500px]"
                     >
-                        {/* Image Header */}
-                        <div className="relative h-56 w-full bg-gray-800">
+                        {/* Esquerda: Imagem */}
+                        <div className="md:w-1/3 relative h-48 md:h-auto overflow-hidden">
                             <Image
                                 src={q.image}
                                 alt="Topic"
                                 layout="fill"
                                 objectFit="cover"
-                                className="opacity-90 hover:opacity-100 transition-opacity"
+                                className="hover:scale-110 transition-transform duration-700"
                                 onError={(e) => e.currentTarget.src = '/img/fundo.png'}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#1e293b] to-transparent"></div>
-                            <div className="absolute bottom-4 left-6 right-6">
-                                <span className="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-md border border-emerald-500/30">
-                                    Questão {currentIndex + 1}
+                            <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-black/80 to-transparent"></div>
+                            <div className="absolute top-6 left-6 z-10">
+                                <span className="bg-black/50 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full font-mono text-sm">
+                                    {currentIndex + 1} / {QUESTIONS.length}
                                 </span>
                             </div>
                         </div>
 
-                        {/* Question Body */}
-                        <div className="p-6 md:p-8 pt-2">
-                            <h2 className="text-xl md:text-2xl font-bold text-white mb-6 leading-snug">
+                        {/* Direita: Pergunta */}
+                        <div className="flex-1 p-6 md:p-10 flex flex-col justify-center relative">
+                            <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 leading-snug">
                                 {q.question}
                             </h2>
 
-                            <div className="space-y-3">
+                            <div className="grid grid-cols-1 gap-4">
                                 {q.options.map((opt, idx) => {
-                                    let statusClass = "bg-[#0f172a] hover:bg-[#334155] border-[#334155]";
+                                    let statusClass = "bg-[#0f172a] border-[#334155] text-gray-300";
+                                    let hoverEffect = { scale: 1.02, x: 10, borderColor: "#34d399" };
+
                                     if (showResult) {
-                                        if (idx === q.correctAnswer) statusClass = "bg-emerald-900/30 border-emerald-500/50 text-emerald-400";
-                                        else if (idx === selectedOption) statusClass = "bg-red-900/30 border-red-500/50 text-red-400 opacity-60";
-                                        else statusClass = "opacity-40 grayscale";
+                                        hoverEffect = {}; // Desativa hover effect
+                                        if (idx === q.correctAnswer) statusClass = "bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.2)]";
+                                        else if (idx === selectedOption) statusClass = "bg-red-500/20 border-red-500 text-red-300";
+                                        else statusClass = "opacity-30 grayscale";
                                     }
 
                                     return (
-                                        <button
+                                        <motion.button
                                             key={idx}
+                                            whileHover={!showResult ? hoverEffect : {}}
+                                            whileTap={!showResult ? { scale: 0.98 } : {}}
                                             onClick={() => handleOptionClick(idx)}
                                             disabled={showResult}
-                                            className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 flex justify-between items-center group active:scale-[0.98] ${statusClass}`}
+                                            className={`w-full p-5 rounded-2xl border-2 text-left text-lg font-medium transition-colors flex items-center justify-between group ${statusClass}`}
                                         >
-                                            <span className="font-medium text-gray-200 group-hover:text-white transition-colors">{opt}</span>
-                                            {showResult && idx === q.correctAnswer && <span className="text-lg">✅</span>}
-                                            {showResult && idx === selectedOption && idx !== q.correctAnswer && <span className="text-lg">❌</span>}
-                                        </button>
+                                            <span className="w-[90%]">{opt}</span>
+                                            {showResult && idx === q.correctAnswer && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-2xl">✅</motion.span>}
+                                            {showResult && idx === selectedOption && idx !== q.correctAnswer && <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-2xl">❌</motion.span>}
+                                        </motion.button>
                                     );
                                 })}
                             </div>
-                        </div>
 
-                        {/* Explanation Footer (Reveals on Answer) */}
-                        <AnimatePresence>
-                            {showResult && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: "auto", opacity: 1 }}
-                                    className="bg-[#0f172a] border-t border-[#334155]"
-                                >
-                                    <div className="p-6">
-                                        <div className="flex items-start gap-3 mb-4">
-                                            <div className={`p-2 rounded-lg ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-                                                {isCorrect ? '👏' : '💡'}
-                                            </div>
-                                            <div>
-                                                <h4 className={`font-bold text-sm uppercase ${isCorrect ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                                    {isCorrect ? 'Correto!' : 'Fique atento'}
-                                                </h4>
-                                                <p className="text-gray-400 text-sm mt-1 leading-relaxed">
-                                                    {q.explanation}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <button
+                            {/* Footer Fixo quando respondido */}
+                            <AnimatePresence>
+                                {showResult && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="mt-6 pt-6 border-t border-[#334155]"
+                                    >
+                                        <p className="text-gray-400 mb-4 text-sm"><strong className="text-amber-400 uppercase text-xs tracking-wider">Explicação:</strong> {q.explanation}</p>
+                                        <motion.button
+                                            whileHover={{ scale: 1.03 }}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={nextQuestion}
-                                            className="w-full py-4 bg-white text-[#0f172a] font-bold rounded-xl shadow-lg hover:shadow-2xl hover:bg-gray-100 transition-all transform active:scale-95 flex items-center justify-center gap-2"
+                                            className="w-full py-4 bg-white text-black font-extrabold rounded-xl shadow-xl hover:bg-gray-200 transition-colors"
                                         >
-                                            {currentIndex + 1 === QUESTIONS.length ? 'Ver Resultado Final' : 'Próxima'} &rarr;
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                            CONTINUAR &rarr;
+                                        </motion.button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                     </motion.div>
                 </AnimatePresence>
-
             </div>
         </div>
     );
