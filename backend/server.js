@@ -428,14 +428,13 @@ app.get('/progresso', authenticateToken, async (req, res) => {
 app.post('/aulas/concluir', authenticateToken, async (req, res) => {
     const { aulaId } = req.body;
     const userId = req.user.id;
-    const existing = await prisma.progresso.findUnique({ where: { userId_aulaId: { userId, aulaId } } });
-    if (existing) {
-        await prisma.progresso.delete({ where: { userId_aulaId: { userId, aulaId } } });
-        res.json({ status: 'desmarcada' });
-    } else {
-        await prisma.progresso.create({ data: { userId, aulaId, concluida: true } });
-        res.json({ status: 'marcada' });
-    }
+    // Idempotente: Sempre marca como concluída (upsert), nunca desmarca.
+    await prisma.progresso.upsert({
+        where: { userId_aulaId: { userId, aulaId } },
+        update: { concluida: true },
+        create: { userId, aulaId, concluida: true }
+    });
+    res.json({ status: 'marcada' });
 });
 
 app.get('/progresso-modulos', authenticateToken, async (req, res) => {

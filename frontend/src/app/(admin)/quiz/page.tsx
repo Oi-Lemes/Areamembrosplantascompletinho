@@ -173,63 +173,39 @@ export default function QuizPage() {
         erroAudio.current = new Audio(SOUNDS.wrong);
     }, []);
 
-    // UPDATE STORAGE
+    // UPDATE STORAGE (NEVER DELETE)
     useEffect(() => {
-        if (started && !gameFinished) {
-            localStorage.setItem('quiz_state', JSON.stringify({ currentIndex, score, gameFinished: false }));
-        }
-        if (gameFinished) {
-            localStorage.removeItem('quiz_state'); // Clear on finish
+        if (started) {
+            // Salva sempre, independentemente de ter terminado ou não
+            localStorage.setItem('quiz_state', JSON.stringify({ currentIndex, score, gameFinished }));
         }
     }, [currentIndex, score, started, gameFinished]);
 
-    const playSound = (type: 'correct' | 'wrong' | 'win') => {
+    // Função para imprimir direto do Quiz (usa a mesma lógica da página de certificado)
+    const [isGenerating, setIsGenerating] = useState(false);
+    const handlePrintCertificate = async () => {
+        setIsGenerating(true);
         try {
-            const audio = new Audio(SOUNDS[type]);
-            audio.volume = type === 'win' ? 0.6 : 1.0;
-            const playPromise = audio.play();
-
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Audio playback failed:", error);
-                });
-            }
-        } catch (e) { console.error("Audio error", e); }
-    };
-
-    const throwConfetti = () => {
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#10b981', '#34d399', '#f59e0b']
-        });
-    };
-
-    const handleOptionClick = (idx: number) => {
-        if (showResult) return;
-
-        setSelectedOption(idx);
-        const correct = idx === QUESTIONS[currentIndex].correctAnswer;
-        setIsCorrect(correct);
-        setShowResult(true);
-
-        if (correct) {
-            setScore(s => s + 1);
-            playSound('correct');
-            throwConfetti(); // Confete a cada acerto!
-        } else {
-            playSound('wrong');
-        }
-    };
-
-    const nextQuestion = () => {
-        setShowResult(false);
-        setSelectedOption(null);
-        if (currentIndex + 1 < QUESTIONS.length) {
-            setCurrentIndex(curr => curr + 1);
-        } else {
-            finishGame(score + (isCorrect ? 1 : 0)); // Pass final score for accuracy
+            const token = localStorage.getItem('token');
+            const response = await fetch(`/api/certificate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ safeStudentName: null }), // Backend usa o nome do user se for null
+            });
+            if (!response.ok) throw new Error('Erro ao gerar');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `meu_certificado.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch (e) {
+            alert('Erro ao gerar certificado. Tente novamente.');
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -252,10 +228,7 @@ export default function QuizPage() {
                 }
             } catch (e) { console.error("Erro ao salvar quiz", e); }
 
-            // Redirect after 1.5 seconds (Faster!)
-            setTimeout(() => {
-                router.push('/certificado');
-            }, 1500);
+            // REDIRECT REMOVIDO! O usuário escolhe o que fazer.
 
         } else {
             playSound('wrong');
@@ -310,6 +283,7 @@ export default function QuizPage() {
 
     // VIEW
     if (!started) {
+        // (Mantido igual)
         return (
             <div className="min-h-screen bg-[url('/img/fundo.png')] bg-cover bg-center flex flex-col items-center justify-center p-4 relative">
                 <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
@@ -351,8 +325,8 @@ export default function QuizPage() {
                     animate={{ scale: 1, opacity: 1 }}
                     className="w-full max-w-3xl bg-[#1e293b]/90 backdrop-blur-xl rounded-[2.5rem] p-10 text-center shadow-2xl border border-[#334155]"
                 >
-                    <h2 className="text-4xl font-bold text-white mb-2">{passed ? "APROVADO!" : "Reprovado"}</h2>
-                    {passed && <p className="text-emerald-400 mb-6 animate-pulse">Redirecionando para o Certificado em instantes...</p>}
+                    <h2 className="text-4xl font-bold text-white mb-2">{passed ? "APROVADO! 🎓" : "Reprovado"}</h2>
+                    {passed && <p className="text-emerald-400 mb-6 font-bold">Você conquistou sua certificação!</p>}
 
                     {/* DOUBLE CIRCLES: ACERTOS vs ERROS */}
                     <div className="flex flex-col md:flex-row justify-center gap-12 mb-8 mt-4">
@@ -387,28 +361,41 @@ export default function QuizPage() {
 
                     <p className="text-lg text-gray-300 mb-8">
                         {passed
-                            ? "Parabéns! Você demonstrou excelência nos saberes naturais. Seu certificado foi desbloqueado."
+                            ? "Parabéns! Você demonstrou excelência nos saberes naturais. Seu certificado está pronto."
                             : `Você acertou ${percentage}%. Precisa de no mínimo 60%. Revise o material e tente novamente.`}
                     </p>
 
-                    <div className="flex gap-4 justify-center">
+                    <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
                         {!passed && (
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => { localStorage.removeItem('quiz_state'); window.location.reload(); }}
-                                className="px-8 py-4 bg-white text-black rounded-xl font-bold transition-all shadow-lg hover:bg-gray-200"
+                                className="w-full md:w-auto px-8 py-4 bg-white text-black rounded-xl font-bold transition-all shadow-lg hover:bg-gray-200"
                             >
                                 Refazer Prova 🔄
                             </motion.button>
                         )}
+
+                        {passed && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handlePrintCertificate}
+                                disabled={isGenerating}
+                                className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-bold transition-all shadow-lg hover:from-amber-400 hover:to-amber-500 flex items-center justify-center gap-2"
+                            >
+                                {isGenerating ? 'Gerando...' : '🖨️ Imprimir Certificado'}
+                            </motion.button>
+                        )}
+
                         <Link href="/dashboard">
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold shadow-lg transition-all"
+                                className="w-full md:w-auto px-8 py-4 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-bold shadow-lg transition-all"
                             >
-                                Sair 🏠
+                                Voltar ao Dashboard 🏠
                             </motion.button>
                         </Link>
                     </div>
