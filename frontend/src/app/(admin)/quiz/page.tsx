@@ -253,8 +253,8 @@ const QUESTIONS = [
 
 // Fallback de URL de áudio caso o arquivo local falhe
 const SOUNDS = {
-    correct: "/sounds/acerto.mp3",
-    wrong: "/sounds/erro.mp3",
+    correct: "/sounds/tada-fanfare-a-6313.mp3",
+    wrong: "/sounds/error-126627.mp3",
     win: "https://actions.google.com/sounds/v1/crowds/crowd_cheer.ogg"
 };
 
@@ -573,6 +573,8 @@ export default function QuizPage() {
                                     </motion.div>
                                 )}
                             </AnimatePresence>
+                        </div>
+
                     </motion.div>
                 </AnimatePresence>
             </div>

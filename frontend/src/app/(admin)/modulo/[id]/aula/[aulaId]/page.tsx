@@ -189,11 +189,17 @@ export default function AulaPage() {
       <main className="space-y-6">
 
         <div>
-          {/* VIDEO CONTAINER CLEANUP: Removido shadow, rounded e overflow para 'retângulo puro' */}
           {aulaAtual.videoUrl ? (
             isVideo ? (
               <div className="w-full aspect-video bg-transparent">
-                <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} allow="autoplay; fullscreen; picture-in-picture" frameBorder="0" scrolling="no" className="w-full h-full"></iframe>
+                <iframe
+                  src={aulaAtual.videoUrl.includes('?') ? `${aulaAtual.videoUrl}&playsinline=1` : `${aulaAtual.videoUrl}?playsinline=1`}
+                  title={aulaAtual.nome}
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  frameBorder="0"
+                  scrolling="no"
+                  className="w-full h-full"
+                ></iframe>
               </div>
             ) : (
               <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} frameBorder="0" className="w-full h-[75vh] bg-white"></iframe>
