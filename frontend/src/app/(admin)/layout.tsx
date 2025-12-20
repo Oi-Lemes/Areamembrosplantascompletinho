@@ -74,25 +74,7 @@ const LayoutWithSidebar = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      // --- CORREÇÃO DO 95% ---
-      // Se tiver concluído o Quiz (ID 999), adiciona um "peso" extra para fechar 100%
-      // Assumindo que o Quiz é o passo final.
-      const hasQuiz = aulasConcluidasIdSet.has(999);
-
-      // Se concluiu todas as aulas + Quiz, força 100%. 
-      // Se não, calcula proporcional. O Quiz vale como um "módulo final".
-
-      // CHECK LOCAL STORAGE OVERRIDE (For client-side progress fix)
-      const localQuizSuccess = localStorage.getItem('quiz_completed_legacy') === 'true';
-
-      if (hasQuiz || localQuizSuccess) {
-        setProgressoTotal(100);
-      } else {
-        // Mantém a lógica normal mas limita a 99% se não fez o quiz
-        let calc = totalAulas > 0 ? (totalConcluidas / totalAulas) * 100 : 0;
-        if (calc > 95) calc = 95; // Trava em 95 se faltar o quiz
-        setProgressoTotal(calc);
-      }
+      setProgressoTotal(totalAulas > 0 ? (totalConcluidas / totalAulas) * 100 : 0);
 
     } catch (error) {
       console.error("Erro ao buscar progresso total:", error);

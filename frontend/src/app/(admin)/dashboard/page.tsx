@@ -399,16 +399,15 @@ export default function DashboardPage() {
           }
           if (modulo.nome.toLowerCase().includes('certificado')) {
             destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
-            destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
             // Lógica de bloqueio do Certificado: Depende do Quiz (Modulo 102)
+            // AQUI ESTÁ A LÓGICA DE 60%: O progresso do módulo 102 reflete a nota (ex: 60 = 60%).
+            // Se o user passou, o progresso deve ser >= 60.
             const quizProgress = progressoModulos[102] ?? 0;
-            const quizCompleted = quizProgress >= 100;
+            const quizPassed = quizProgress >= 60; // Mínimo 60% de acerto
 
-            if (!cursoConcluido) {
-              isLockedByProgress = true; lockMessage = "Conclua todas as aulas para emitir";
-            } else if (!quizCompleted) {
+            if (!quizPassed) {
               isLockedByProgress = true;
-              lockMessage = "Seja aprovado no Quiz (60%) para liberar";
+              lockMessage = "Seja aprovado no Quiz (min. 60%) para liberar";
             }
             else if (userPlan === 'basic' && !user?.hasWalletAccess) { // hasWalletAccess cobre Certificado e Carteira
               isPaywalled = true; isLockedByProgress = false;
