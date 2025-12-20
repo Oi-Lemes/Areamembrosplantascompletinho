@@ -70,31 +70,40 @@ export default function CarteiraPage() {
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawCep = e.target.value;
-    const newCep = rawCep.replace(/\D/g, ''); // Remove tudo que não for número
+    const newCep = rawCep.replace(/\D/g, '');
     setCep(newCep);
 
-    if (newCep.length !== 8) {
-      setAddress({ street: '', number: '', neighborhood: '', city: '', state: '' });
+    if (newCep.length < 8) {
+      // Se apagar, limpa
+      if (newCep.length === 0) setAddress({ street: '', number: '', neighborhood: '', city: '', state: '' });
       return;
-    };
+    }
 
     setLoadingCep(true);
     setError('');
+
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${newCep}/json/`);
-      if (!response.ok) throw new Error('CEP não encontrado ou inválido.');
+      // USAR PROXY INTERNO PARA EVITAR CORS
+      const response = await fetch(`/api/cep?cep=${newCep}`);
       const data = await response.json();
-      if (data.erro) throw new Error('CEP não encontrado.');
+
+      if (!response.ok || data.error) {
+        throw new Error('CEP não encontrado.');
+      }
+
       setAddress({
-        street: data.logradouro || '', // Bug da rua corrigido
+        street: data.street || '',
         number: '',
-        neighborhood: data.bairro || '',
-        city: data.localidade || '',
-        state: data.uf || ''
+        neighborhood: data.neighborhood || '',
+        city: data.city || '',
+        state: data.state || ''
       });
+
     } catch (err: any) {
-      setError(err.message);
-      setAddress({ street: '', number: '', neighborhood: '', city: '', state: '' });
+      console.warn("Falha ao buscar CEP automatico", err);
+      setError('CEP não encontrado automaticamente. Digite o endereço abaixo.');
+      // Mantém o que foi digitado (se houver) e libera edição
+      // Importante: Não limpamos os campos para não frustrar se o unsuário já estava digitando
     } finally {
       setLoadingCep(false);
     }
@@ -265,7 +274,7 @@ export default function CarteiraPage() {
               </div>
               <div>
                 <label htmlFor="street" className="block text-sm font-medium text-gray-300 mb-2">Rua / Logradouro</label>
-                <input type="text" id="street" value={address.street} readOnly={!!address.street && !loadingCep} placeholder={loadingCep ? '' : 'Preenchido automaticamente'} required className={`w-full p-3 border rounded-md text-white ${!!address.street && !loadingCep ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed' : 'bg-gray-700 border-gray-600 focus:ring-2 focus:ring-blue-500'}`} />
+                <input type="text" id="street" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} placeholder="Rua, Avenida..." required className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label htmlFor="number" className="block text-sm font-medium text-gray-300 mb-2">Número / Complemento</label>
@@ -273,15 +282,15 @@ export default function CarteiraPage() {
               </div>
               <div>
                 <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-300 mb-2">Bairro</label>
-                <input type="text" id="neighborhood" value={address.neighborhood} readOnly={!!address.neighborhood && !loadingCep} placeholder={loadingCep ? '' : 'Preenchido automaticamente'} required className={`w-full p-3 border rounded-md text-white ${!!address.neighborhood && !loadingCep ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed' : 'bg-gray-700 border-gray-600 focus:ring-2 focus:ring-blue-500'}`} />
+                <input type="text" id="neighborhood" value={address.neighborhood} onChange={(e) => setAddress({ ...address, neighborhood: e.target.value })} placeholder="Bairro" required className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-gray-300 mb-2">Cidade</label>
-                <input type="text" id="city" value={address.city} readOnly={!!address.city && !loadingCep} placeholder={loadingCep ? '' : 'Preenchido automaticamente'} required className={`w-full p-3 border rounded-md text-white ${!!address.city && !loadingCep ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed' : 'bg-gray-700 border-gray-600 focus:ring-2 focus:ring-blue-500'}`} />
+                <input type="text" id="city" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} placeholder="Cidade" required className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label htmlFor="state" className="block text-sm font-medium text-gray-300 mb-2">Estado (UF)</label>
-                <input type="text" id="state" value={address.state} readOnly={!!address.state && !loadingCep} placeholder={loadingCep ? '' : 'UF'} required maxLength={2} className={`w-full p-3 border rounded-md text-white uppercase ${!!address.state && !loadingCep ? 'bg-gray-600 border-gray-500 text-gray-400 cursor-not-allowed' : 'bg-gray-700 border-gray-600 focus:ring-2 focus:ring-blue-500'}`} />
+                <input type="text" id="state" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value.toUpperCase() })} placeholder="UF" required maxLength={2} className="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white uppercase focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
 

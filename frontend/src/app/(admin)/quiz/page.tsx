@@ -252,10 +252,10 @@ export default function QuizPage() {
                 }
             } catch (e) { console.error("Erro ao salvar quiz", e); }
 
-            // Redirect after 4 seconds
+            // Redirect after 1.5 seconds (Faster!)
             setTimeout(() => {
                 router.push('/certificado');
-            }, 4000);
+            }, 1500);
 
         } else {
             playSound('wrong');
