@@ -223,6 +223,32 @@ export default function QuizPage() {
         }
     };
 
+    const throwConfetti = () => {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#10b981', '#34d399', '#f59e0b']
+        });
+    };
+
+    const handleOptionClick = (idx: number) => {
+        if (showResult) return;
+
+        setSelectedOption(idx);
+        const correct = idx === QUESTIONS[currentIndex].correctAnswer;
+        setIsCorrect(correct);
+        setShowResult(true);
+
+        if (correct) {
+            setScore(s => s + 1);
+            playSound('correct');
+            throwConfetti(); // Confete a cada acerto!
+        } else {
+            playSound('wrong');
+        }
+    };
+
     const finishGame = async (finalScoreValue: number) => {
         setGameFinished(true);
         // Ensure accurate final calculation
