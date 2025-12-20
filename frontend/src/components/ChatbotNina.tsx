@@ -84,9 +84,20 @@ export default function ChatbotNina() {
     };
 
     const playAudio = (text: string) => {
-        const cleanText = removeMarkdown(text);
-        const audio = new Audio(`/api/tts?text=${encodeURIComponent(cleanText)}`);
-        audio.play();
+        try {
+            const cleanText = removeMarkdown(text);
+            const audio = new Audio(`/api/tts?text=${encodeURIComponent(cleanText)}`);
+            // Promessa de play para capturar erros de autoplay em mobile
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn("Autoplay bloqueado pelo navegador (comum em mobile). O usuário precisa interagir.", error);
+                    // Opcional: Adicionar um botão de "Ouvir" na mensagem se falhar
+                });
+            }
+        } catch (error) {
+            console.error("Erro fatal ao tentar reproduzir áudio:", error);
+        }
     };
 
     const handleClearChat = () => {
@@ -155,26 +166,29 @@ export default function ChatbotNina() {
 
     // Efeito 1: Inicialização (Executa uma vez)
     useEffect(() => {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = true; // Permite pausas longas sem cortar
-            recognition.interimResults = true;
-            recognition.lang = 'pt-BR';
+        // Verifica se window existe (SSR safety)
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true; // Permite pausas longas sem cortar
+                recognition.interimResults = true;
+                recognition.lang = 'pt-BR';
 
-            recognition.onstart = () => setIsRecording(true);
+                recognition.onstart = () => setIsRecording(true);
 
-            recognition.onend = () => {
-                setIsRecording(false);
-                if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
-            };
+                recognition.onend = () => {
+                    setIsRecording(false);
+                    if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+                };
 
-            recognition.onerror = (event: any) => {
-                console.error("Erro STT:", event.error);
-                setIsRecording(false);
-            };
+                recognition.onerror = (event: any) => {
+                    console.error("Erro STT:", event.error);
+                    setIsRecording(false);
+                };
 
-            recognitionRef.current = recognition;
+                recognitionRef.current = recognition;
+            }
         }
     }, []);
 
@@ -265,7 +279,8 @@ export default function ChatbotNina() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 50, scale: 0.95 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 40 }}
-                        className="fixed bottom-0 right-0 h-[75vh] w-full bg-white/80 backdrop-blur-lg dark:bg-gray-800/80 shadow-2xl flex flex-col z-50 md:bottom-20 md:right-4 md:w-96 md:h-[600px] md:rounded-xl border border-gray-200 dark:border-gray-700"
+                        // Ajuste Mobile: h-[80dvh] para evitar problemas com barra de endereço
+                        className="fixed bottom-0 right-0 h-[80dvh] w-full bg-white/80 backdrop-blur-lg dark:bg-gray-800/80 shadow-2xl flex flex-col z-50 md:bottom-20 md:right-4 md:w-96 md:h-[600px] md:rounded-xl border border-gray-200 dark:border-gray-700"
                     >
                         <div className="bg-gray-50 dark:bg-gray-900/70 p-4 flex items-center rounded-t-xl flex-shrink-0 border-b border-gray-200 dark:border-gray-800">
                             <img src="/avatar-nina.png" alt="Nina" className="w-10 h-10 rounded-full mr-3" />

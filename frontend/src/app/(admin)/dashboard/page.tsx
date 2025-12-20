@@ -396,6 +396,8 @@ export default function DashboardPage() {
           // Lógica Especial: Módulos Pagos/Extras (ID >= 90) nunca ficam cinza, para chamar atenção
           const isSpecialModule = modulo.id >= 90;
 
+          const shouldApplyGrayscale = isCompleted && modulo.id <= 6;
+
           const linkClassName = `group relative block rounded-lg overflow-hidden transition-all duration-500 transform 
             ${isPaywalled
               ? 'cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/40'
@@ -405,13 +407,21 @@ export default function DashboardPage() {
                   : 'cursor-not-allowed filter grayscale contrast-75 brightness-75' // Bloqueado normal (cinza)
                 )
                 : isCompleted
-                  ? 'hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20 grayscale-[0.8] hover:grayscale-0 opacity-80 hover:opacity-100 ring-2 ring-emerald-500/30'
+                  ? 'hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/20 opacity-90 hover:opacity-100 ring-2 ring-emerald-500/30'
                   : 'hover:scale-105 hover:shadow-2xl hover:shadow-amber-500/40' // Normal
             }`;
 
           return (
             <Link key={modulo.id} href={isLocked || isPaywalled ? '#' : destinationUrl} onClick={finalOnClick} className={linkClassName}>
-              <div className="relative w-full h-80"><Image src={imageUrl} alt={modulo.nome} layout="fill" objectFit="cover" className="transition-transform duration-500 group-hover:scale-110" onError={(e) => { e.currentTarget.src = '/img/fundo.png'; }} />
+              <div className="relative w-full h-80">
+                <Image
+                  src={imageUrl}
+                  alt={modulo.nome}
+                  layout="fill"
+                  objectFit="cover"
+                  className={`transition-transform duration-500 group-hover:scale-110 ${shouldApplyGrayscale ? 'grayscale-[0.8] group-hover:grayscale-0' : ''}`}
+                  onError={(e) => { e.currentTarget.src = '/img/fundo.png'; }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
               </div>
               <div className="absolute bottom-0 left-0 p-4 md:p-6 text-white w-full">
