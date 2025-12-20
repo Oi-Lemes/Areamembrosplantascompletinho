@@ -416,7 +416,8 @@ export default function DashboardPage() {
 
           let destinationUrl = `/modulo/${modulo.id}`;
           let imageIndex = modulo.ordem || (modulos.findIndex(m => m.id === modulo.id) + 1); // Usa ordem se disponível
-          let imageUrl = imageIndex > 0 ? `/img/md${imageIndex}.jpg` : '/img/fundo.png';
+          // PRIORIDADE: Se o backend mandou 'capa', usa ela. Senão, usa a lógica antiga (md1, md2...)
+          let imageUrl = (modulo as any).capa || (imageIndex > 0 ? `/img/md${imageIndex}.jpg` : '/img/fundo.png');
 
           const userPlan = user?.plan || 'basic';
 
