@@ -119,7 +119,12 @@ const MOCK_MODULOS = [
         ]
     },
     {
-        id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', ordem: 7, aulas: [
+        id: 102,
+        nome: 'Quiz de Conhecimento',
+        description: 'Teste seus conhecimentos e ganhe recompensas!',
+        ordem: 7,
+        capa: '/img/modulo_quiz.png',
+        aulas: [
             { id: 999, nome: 'Avaliação Final', videoUrl: '', ordem: 1 }
         ]
     },
