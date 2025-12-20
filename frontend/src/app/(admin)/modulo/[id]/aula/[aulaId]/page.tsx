@@ -158,7 +158,7 @@ export default function AulaPage() {
     }
   };
 
-  const isVideo = aulaAtual?.videoUrl?.includes('wistia.com');
+  const isVideo = aulaAtual?.videoUrl?.includes('wistia') || aulaAtual?.videoUrl?.includes('youtube');
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div></div>;
@@ -192,7 +192,7 @@ export default function AulaPage() {
           {/* VIDEO CONTAINER CLEANUP: Removido shadow, rounded e overflow para 'retângulo puro' */}
           {aulaAtual.videoUrl ? (
             isVideo ? (
-              <div className="w-full aspect-video bg-black">
+              <div className="w-full aspect-video bg-transparent">
                 <iframe src={aulaAtual.videoUrl} title={aulaAtual.nome} allow="autoplay; fullscreen; picture-in-picture" frameBorder="0" scrolling="no" className="w-full h-full"></iframe>
               </div>
             ) : (
