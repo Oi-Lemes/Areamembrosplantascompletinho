@@ -118,24 +118,23 @@ const MOCK_MODULOS = [
             { id: 18, nome: 'Dosagem, preservação e cuidados para resultados duradouros', videoUrl: 'https://a-medida-da-natureza-aura6ot.gamma.site/', ordem: 3 }
         ]
     },
+    {
+        id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', ordem: 7, aulas: [
+            { id: 999, nome: 'Avaliação Final', videoUrl: '', ordem: 1 }
+        ]
     },
-{
-    id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', ordem: 7, aulas: [
-        { id: 999, nome: 'Avaliação Final', videoUrl: '', ordem: 1 }
-    ]
-},
-{
-    id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', ordem: 8, aulas: []
-},
-{
-    id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', ordem: 9, aulas: []
-},
-{
-    id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', ordem: 10, aulas: []
-},
-{
-    id: 103, nome: 'Grupo de Alunos', description: 'Entre para o nosso grupo exclusivo no WhatsApp.', ordem: 11, aulas: []
-}
+    {
+        id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', ordem: 8, aulas: []
+    },
+    {
+        id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', ordem: 9, aulas: []
+    },
+    {
+        id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', ordem: 10, aulas: []
+    },
+    {
+        id: 103, nome: 'Grupo de Alunos', description: 'Entre para o nosso grupo exclusivo no WhatsApp.', ordem: 11, aulas: []
+    }
 ];
 
 const app = express();
