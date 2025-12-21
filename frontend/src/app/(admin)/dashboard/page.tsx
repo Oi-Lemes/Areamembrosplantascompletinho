@@ -76,13 +76,18 @@ interface PixData {
 
 // 2. Mapeamento dos Hashes de Produto ATUALIZADO
 const PRODUCTS = {
+  basic: {
+    hash: '9b7d69dcb4', // Oferta Básica
+    amount: 4700,         // Valor Estimado (ajuste se necessário)
+    title: 'Plano Básico'
+  },
   premium: {
-    hash: 'dig1p', // Mantenha se ainda for este, ou atualize se migrou
+    hash: '6adf6a54a5', // Oferta Premium
     amount: 9700,
     title: 'Plano Premium'
   },
   ultra: {
-    hash: 'tjxp0', // Mantenha se ainda for este, ou atualize se migrou
+    hash: 'tjxp0', // ULTRA (Mantido)
     amount: 19700,
     title: 'Plano Ultra'
   },
@@ -96,7 +101,6 @@ const PRODUCTS = {
     amount: 2704,
     title: 'Acesso ao Chatbot Nina'
   },
-  // ▼▼▼ ATUALIZADO AQUI ▼▼▼
   certificate: {
     hash: 'prod_0bc162e2175f527f', // Certificado (Paradise)
     amount: 1490,                 // Valor do PHP (R$ 14,90)
@@ -107,7 +111,6 @@ const PRODUCTS = {
     amount: 2700,                 // Valor do PHP (R$ 27,00)
     title: 'Carteira ABRATH'       // Título do PHP
   }
-  // ▲▲▲ FIM DA ATUALIZAÇÃO ▲▲▲
 };
 
 // ... (resto do componente DashboardPage) ...

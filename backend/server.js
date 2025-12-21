@@ -256,12 +256,37 @@ app.post('/webhook/paradise', async (req, res) => {
             return res.status(200).send('Ignorado: Produto diferente');
         }
 
+        // CONSTANTES DAS OFERTAS (Fornecidas pelo Usuário)
+        const PRODUCT_ID_MAIN = 'prod_372117ff2ba365a1'; // Produto Pai
+        const OFFER_BASIC = '9b7d69dcb4';
+        const OFFER_PREMIUM = '6adf6a54a5';
+
+        // Tenta capturar o Hash da Oferta ou do Produto
+        // Paradise envia estruturas variadas ex: event.offer.hash, event.product.offer_hash, etc.
+        const offerHash = (event.offer && event.offer.hash) ||
+            (product && product.offer_hash) ||
+            incomingHash; // Fallback para o hash principal recebido
+
         if (eventType === 'purchase.approved' || eventType === 'paid' || eventType === 'approved') {
             let email = client.email;
             const name = client.name;
             const phone = client.phone ? client.phone.replace(/\D/g, '') : null;
             const cpf = client.cpf || client.document;
 
+            // Determina o Plano
+            let targetPlan = 'basic'; // Default seguro
+
+            if (offerHash === OFFER_PREMIUM) {
+                targetPlan = 'premium';
+                console.log(`[WEBHOOK] Detectada oferta PREMIUM (${offerHash})`);
+            } else if (offerHash === OFFER_BASIC) {
+                targetPlan = 'basic';
+                console.log(`[WEBHOOK] Detectada oferta BÁSICA (${offerHash})`);
+            } else {
+                console.log(`[WEBHOOK] Oferta desconhecida (${offerHash}), atribuindo plano Básico por padrão.`);
+            }
+
+            // Lógica de conflito de email (mantida)
             if (email) {
                 const userWithEmail = await prisma.user.findFirst({ where: { email: email } });
                 if (userWithEmail && userWithEmail.phone !== phone) {
@@ -275,10 +300,18 @@ app.post('/webhook/paradise', async (req, res) => {
 
             const user = await prisma.user.upsert({
                 where: { phone: phone },
-                update: { plan: 'premium', status: 'active', name: name, email: email },
-                create: { phone: phone, email: email || `${phone}@sememail.com`, name: name || 'Aluno Novo', plan: 'premium', status: 'active', cpf: cpf }
+                // Se já existe, atualiza para o plano novo (upgrade ou downgrade)
+                update: { plan: targetPlan, status: 'active', name: name, email: email },
+                create: {
+                    phone: phone,
+                    email: email || `${phone}@sememail.com`,
+                    name: name || 'Aluno Novo',
+                    plan: targetPlan,
+                    status: 'active',
+                    cpf: cpf
+                }
             });
-            console.log(`[WEBHOOK] Usuário APROVADO: ${user.name} (${user.phone})`);
+            console.log(`[WEBHOOK] Usuário APROVADO: ${user.name} (${user.phone}) -> Plano: ${targetPlan}`);
         } else if (eventType === 'purchase.refunded' || eventType === 'chargeback') {
             const phone = client.phone ? client.phone.replace(/\D/g, '') : null;
             if (phone) {
