@@ -427,25 +427,19 @@ export default function DashboardPage() {
           // PRIORIDADE: Se o backend mandou 'capa', usa ela. Senão, usa a lógica antiga (md1, md2...)
           let imageUrl = (modulo as any).capa || (imageIndex > 0 ? `/img/md${imageIndex}.jpg` : '/img/fundo.png');
 
-          // OVERRIDE: Garante a imagem do Quiz (102) mesmo se o backend estiver desatualizado
-          if (modulo.id === 102) {
-            imageUrl = '/img/modulo_quiz.png';
-            isPaywalled = false; // DESBLOQUEIO: Quiz é livre para Basic e Premium
-            lockMessage = "";
-          }
-
-          if (modulo.nome.toLowerCase().includes('quiz')) {
-            destinationUrl = '/quiz';
-            imageUrl = '/img/modulo_quiz.png'; // Garante aqui também
-          }
-
-          const userPlan = user?.plan || 'basic';
-
           // 7. LÓGICA DE BLOQUEIO ATUALIZADA com as chaves de produto
           if (indexPrincipal >= 6 && userPlan === 'basic') {
             isPaywalled = true;
             lockMessage = "Faça upgrade para Premium para aceder";
             purchaseProductKey = 'premium'; // Chave do Produto Premium
+          }
+
+          // OVERRIDE: Garante a imagem do Quiz (102) e DESBLOQUEIO (Prioridade Alta)
+          if (modulo.id === 102) {
+            imageUrl = '/img/modulo_quiz.png';
+            isPaywalled = false;
+            purchaseProductKey = null; // Remove a chave de compra para não gerar PIX
+            lockMessage = "";
           }
           if (modulo.nome.toLowerCase().includes('certificado')) {
             destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
