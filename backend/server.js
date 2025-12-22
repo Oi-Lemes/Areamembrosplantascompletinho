@@ -381,6 +381,7 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         };
 
         const paradiseUrl = 'https://multi.paradisepags.com/api/v1/transaction.php';
+        console.log('[PIX] Enviando payload:', JSON.stringify(paymentPayload, null, 2)); // DEBUG PAYLOAD
         const response = await axios.post(paradiseUrl, paymentPayload, {
             headers: {
                 'Content-Type': 'application/json',
