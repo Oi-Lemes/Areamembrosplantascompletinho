@@ -598,7 +598,43 @@ app.post('/upload-profile-image', authenticateToken, upload.single('profileImage
     }
 });
 
-app.get('/modulos', authenticateToken, (req, res) => { res.json(MOCK_MODULOS); });
+app.get('/api/fix-quiz-db', async (req, res) => {
+    try {
+        console.log('🔧 Executing Database Fix for Quiz...');
+
+        // 1. Ensure Module 102 exists
+        await prisma.modulo.upsert({
+            where: { id: 102 },
+            update: {},
+            create: {
+                id: 102,
+                nome: 'Avaliação Final',
+                description: 'Complete o Quiz para receber seu certificado.',
+                ordem: 100,
+                imagem: 'https://placehold.co/600x400/eab308/ffffff?text=Quiz+Final'
+            }
+        });
+
+        // 2. Ensure Aula 999 exists
+        await prisma.aula.upsert({
+            where: { id: 999 },
+            update: {},
+            create: {
+                id: 999,
+                nome: 'Avaliação Final (Sistema)',
+                descricao: 'Aula lógica para registrar a conclusão do Quiz.',
+                videoUrl: 'https://quiz-placeholder',
+                ordem: 1,
+                moduloId: 102
+            }
+        });
+
+        res.json({ success: true, message: 'Modulo 102 e Aula 999 verificados/criados com sucesso.' });
+    } catch (error) {
+        console.error('Fix DB Error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 app.get('/modulos/:id', authenticateToken, (req, res) => {
     const id = parseInt(req.params.id);
     const modulo = MOCK_MODULOS.find(m => m.id === id);
