@@ -392,6 +392,7 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         // HARDCODED TO MATCH PHP SCRIPT EXACTLY
         const apiKey = 'sk_5801a6ec5051bf1cf144155ddada51120b2d1dda4d03cb2df454fb4eab9a78a9';
 
+
         console.log(`[PIX] Token Length: ${apiKey.length}`);
         console.log('[PIX] Enviando payload:', JSON.stringify(paymentPayload, null, 2));
 
