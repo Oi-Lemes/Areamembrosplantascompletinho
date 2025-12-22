@@ -16,7 +16,7 @@ interface PixData {
 
 // Detalhes do Produto Certificado
 const CERTIFICATE_PRODUCT = {
-  hash: 'ecb9da7fbc', // Hash do PHP
+  hash: 'prod_0bc162e2175f527f', // Hash do PHP
   amount: 1490,                 // Valor em centavos do PHP
   title: 'Certificado'          // Título do PHP
 };

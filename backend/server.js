@@ -367,6 +367,9 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
 
+        // Ensure amount is integer (cents) logic if needed, but assuming baseAmount comes correct from frontend
+        // PHP script sends 1490 for 14.90.
+
         const paymentPayload = {
             amount: baseAmount,
             description: productTitle || 'Produto Digital',
@@ -376,13 +379,15 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
             customer: {
                 name: user.name,
                 email: user.email,
-                document: user.cpf || '00000000000',
-                phone: user.phone
-            }
+                document: (user.cpf || '00000000000').replace(/\D/g, ''),
+                phone: (user.phone || '').replace(/\D/g, '')
+            },
+            orderbump: [] // Mantendo estrutura idêntica ao PHP
         };
 
         const paradiseUrl = 'https://multi.paradisepags.com/api/v1/transaction.php';
-        console.log('[PIX] Enviando payload:', JSON.stringify(paymentPayload, null, 2)); // DEBUG PAYLOAD
+        console.log('[PIX] Enviando payload:', JSON.stringify(paymentPayload, null, 2));
+
         const response = await axios.post(paradiseUrl, paymentPayload, {
             headers: {
                 'Content-Type': 'application/json',
@@ -391,23 +396,37 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
             }
         });
 
+        // PHP Logic: $transaction_data = $response_data['transaction'] ?? $response_data;
         const data = response.data;
-        const qrCode = data.qr_code || data.pix_qr_code || data.qrcode_text;
-        const expiration = data.expiration_date || data.expiration;
+        const transaction = data.transaction || data;
 
-        if (!qrCode) return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
+        const qrCode = transaction.qr_code || transaction.pix_qr_code || transaction.qrcode_text;
+        const expiration = transaction.expires_at || transaction.expiration_date;
+
+        if (!qrCode) {
+            console.error('[PIX] Resposta sem QR Code:', JSON.stringify(data));
+            return res.status(502).json({ error: 'Falha ao obter QR Code da operadora.' });
+        }
 
         res.json({
-            pix: { pix_qr_code: qrCode, expiration_date: expiration, amount_paid: baseAmount, hash: response.data.hash || response.data.id || 'NOHASH' },
+            pix: {
+                pix_qr_code: qrCode,
+                expiration_date: expiration
+            },
             amount_paid: baseAmount,
-            hash: productHash
+            hash: transaction.id || transaction.hash || 'NOHASH'
         });
 
     } catch (error) {
-        const errorMsg = error.response && error.response.data ? JSON.stringify(error.response.data) : error.message;
+        const errorData = error.response ? error.response.data : null;
+        const errorMsg = errorData ? JSON.stringify(errorData) : error.message;
         console.error('[PIX] Erro detalhado:', errorMsg);
-        // Retorna o erro exato da API para o frontend mostrar no alert
-        res.status(400).json({ error: `Erro na Operadora: ${errorMsg}` });
+
+        // Passar erro exato da API
+        if (errorData && errorData.error) {
+            return res.status(400).json({ error: `Erro na Operadora: ${errorData.error}` });
+        }
+        res.status(500).json({ error: `Erro ao processar pagamento: ${errorMsg}` });
     }
 });
 

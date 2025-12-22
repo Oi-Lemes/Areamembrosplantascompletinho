@@ -107,7 +107,7 @@ const PRODUCTS = {
     title: 'Acesso ao Chatbot Nina'
   },
   certificate: {
-    hash: 'ecb9da7fbc', // Certificado (Paradise)
+    hash: 'prod_0bc162e2175f527f', // Certificado (Paradise)
     amount: 1490,                 // Valor do PHP (R$ 14,90)
     title: 'Certificado'           // Título do PHP
   },
