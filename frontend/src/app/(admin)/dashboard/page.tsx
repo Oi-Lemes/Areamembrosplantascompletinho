@@ -226,6 +226,7 @@ export default function DashboardPage() {
   }, [fetchData, refetchUser]);
 
   // --- NOVO: LER PROGRESSO DO QUIZ DO LOCALSTORAGE ---
+
   useEffect(() => {
     const checkQuizProgress = () => {
       const savedState = localStorage.getItem('quiz_state');
@@ -234,40 +235,37 @@ export default function DashboardPage() {
           const { currentIndex, gameFinished, score } = JSON.parse(savedState);
 
           // LÓGICA CORRIGIDA: Só é 100% se terminou E passou (score >= 9) OU se já tem score de aprovação solto.
-          // Antes estava: se terminou (mesmo zerado), dava 100%. ISSO ESTAVA ERRADO.
           const passed = (typeof score === 'number' && score >= 9); // 60% de 15 é 9
 
-          if (passed) {
-            // Se passou, 100% (Desbloqueia certificado)
-            setProgressoModulos(prev => ({ ...prev, 102: 100 }));
-            return;
-          } else if (gameFinished && !passed) {
-            // Se terminou e NÃO passou, calcula a nota proporcional (ex: 4/15 = 26%)
-            // Isso impede que fique 100% e mantém o certificado bloqueado.
-            const finalPercent = Math.round(((score || 0) / 15) * 100);
-            setProgressoModulos(prev => {
-              // Só atualiza se o backend não estiver já em 100 (caso o user tenha passado ANTIGAMENTE)
-              if ((prev[102] || 0) < 100) {
-                return { ...prev, 102: finalPercent };
-              }
-              return prev;
-            });
-            return;
-          }
+          setProgressoModulos(prev => {
+            const currentVal = prev[102] || 0;
 
-          if (typeof currentIndex === 'number') {
-            // Calcula % baseada em 15 questões.
-            // (currentIndex + 1) pois o index começa em 0.
-            const quizPercent = Math.round(((currentIndex + 1) / 15) * 100);
+            if (passed) {
+              // Se passou, tem que ser 100%
+              if (currentVal === 100) return prev; // Nada a mudar
+              return { ...prev, 102: 100 };
+            }
 
-            setProgressoModulos(prev => {
-              // Só atualiza se o backend não disser que já completou (100) e se não for 100 localmente ainda
-              if ((prev[102] || 0) < 100) {
-                return { ...prev, 102: quizPercent };
-              }
-              return prev;
-            });
-          }
+            if (gameFinished && !passed) {
+              // Se terminou e NÃO passou, calcula a nota proporcional
+              const finalPercent = Math.round(((score || 0) / 15) * 100);
+              // Não rebaixa se já for 100 (ex: passou antes e resetou?)
+              if (currentVal >= 100) return prev;
+              if (currentVal === finalPercent) return prev;
+              return { ...prev, 102: finalPercent };
+            }
+
+            // Se ainda está jogando (não finished), mostra progresso parcial
+            if (typeof currentIndex === 'number') {
+              const quizPercent = Math.round(((currentIndex + 1) / 15) * 100);
+              if (currentVal >= 100) return prev; // Não mexe se já completou
+              if (currentVal === quizPercent) return prev;
+              return { ...prev, 102: quizPercent };
+            }
+
+            return prev;
+          });
+
         } catch (e) { console.error(e); }
       }
     };
@@ -461,7 +459,7 @@ export default function DashboardPage() {
             destinationUrl = '/certificado'; imageUrl = '/img/md7.jpg';
 
             // Lógica de bloqueio do Certificado: Depende do Quiz (Modulo 102)
-            const quizProgress = progressoModulos[102] ?? 0;
+            const quizProgress = progressoModulos?.[102] ?? 0;
             const quizPassed = quizProgress >= 60; // Mínimo 60% de acerto
 
             if (!quizPassed) {
