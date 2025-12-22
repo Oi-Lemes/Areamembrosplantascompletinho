@@ -327,7 +327,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <LayoutWithSidebar>{children}</LayoutWithSidebar>
 
       {/* O Switcher de planos para teste */}
-      <DevPlanSwitcher />
+      {/* <DevPlanSwitcher /> */}
     </UserProvider>
   );
 }

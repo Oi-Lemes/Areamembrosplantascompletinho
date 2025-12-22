@@ -12,31 +12,16 @@ import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import PDFDocument from 'pdfkit'; // NEW: PDF Library for Certificates
 import multer from 'multer'; // Upload de Imagens
+import sharp from 'sharp'; // NEW: Image Processing
 
 const prisma = new PrismaClient();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const execFileAsync = promisify(execFile);
 
-// --- CONFIGURAÇÃO DE UPLOAD (MULTER) ---
-// Cria a pasta 'uploads' se não existir
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-// Configura onde salvar e o nome do arquivo
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        // Nome único: userId-timestamp.ext
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'profile-' + uniqueSuffix + ext);
-    }
-});
+// --- CONFIGURAÇÃO DE UPLOAD (MULTER - MEMÓRIA) ---
+// Usamos memória para transformar em Base64 e salvar no banco (Persistência no Render)
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage: storage,
@@ -428,32 +413,36 @@ app.get('/me', authenticateToken, async (req, res) => {
     res.json(user);
 });
 
-// --- ROTA DE UPLOAD DE FOTO DE PERFIL ---
+// --- ROTA DE UPLOAD DE FOTO DE PERFIL (BASE64) ---
 app.post('/upload-profile-image', authenticateToken, upload.single('profileImage'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'Nenhum arquivo enviado.' });
         }
 
-        // Gera a URL completa
-        // Se houver variável de ambiente BACKEND_URL, usa ela. Senão, tenta montar com o host.
-        const baseUrl = process.env.BACKEND_URL || `${req.protocol}://${req.get('host')}`;
-        // Garantir que não tenha barra duplicada
-        const cleanBaseUrl = baseUrl.replace(/\/$/, '');
-        const imageUrl = `${cleanBaseUrl}/uploads/${req.file.filename}`;
+        console.log(`[UPLOAD] Processando imagem para User ${req.user.id}...`);
 
-        // Atualiza no Banco
+        // Processamento com SHARP: Redimensionar e Converter para Base64
+        // 300x300 é suficiente para avatar, qualidade 80 remove peso desnecessário
+        const processedBuffer = await sharp(req.file.buffer)
+            .resize(300, 300, { fit: 'cover' })
+            .jpeg({ quality: 80 })
+            .toBuffer();
+
+        const base64Image = `data:image/jpeg;base64,${processedBuffer.toString('base64')}`;
+
+        // Atualiza no Banco com a string Base64 completa
         const updatedUser = await prisma.user.update({
             where: { id: req.user.id },
-            data: { profileImage: imageUrl }
+            data: { profileImage: base64Image }
         });
 
-        console.log(`[UPLOAD] Nova foto para User ${req.user.id}: ${imageUrl}`);
-        res.json({ success: true, profileImage: imageUrl, user: updatedUser });
+        console.log(`[UPLOAD] Sucesso! Tamanho salvo: ${Math.round(base64Image.length / 1024)}KB`);
+        res.json({ success: true, profileImage: base64Image, user: updatedUser });
 
     } catch (error) {
         console.error("Erro no upload:", error);
-        res.status(500).json({ error: 'Erro ao salvar a imagem.' });
+        res.status(500).json({ error: 'Erro ao processar imagem.' });
     }
 });
 
