@@ -598,6 +598,8 @@ app.post('/upload-profile-image', authenticateToken, upload.single('profileImage
     }
 });
 
+app.get('/modulos', authenticateToken, (req, res) => { res.json(MOCK_MODULOS); });
+
 app.get('/api/fix-quiz-db', async (req, res) => {
     try {
         console.log('🔧 Executing Database Fix for Quiz...');
