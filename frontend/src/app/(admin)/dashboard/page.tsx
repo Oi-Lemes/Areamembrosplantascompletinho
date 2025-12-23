@@ -542,7 +542,7 @@ export default function DashboardPage() {
               </div>
               {(!isLocked && !isPaywalled && modulo.aulas && modulo.aulas.length > 0) && <ProgressCircle percentage={progressoModulos[modulo.id] ?? 0} />}
               {(isLocked || isPaywalled) && (
-                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center p-4 text-center">
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-4 text-center ${isPaywalled ? 'bg-black/80' : 'bg-black/50'}`}>
                   <span className={`font-bold ${isPaywalled ? "text-amber-400" : "text-red-600"}`}>{isPaywalled ? "CONTEÚDO EXCLUSIVO" : "BLOQUEADO"}</span>
                   <span className={`text-xs ${!isPaywalled ? "text-red-500 font-medium" : ""}`}>{lockMessage}</span>
                   {isPaywalled && (
