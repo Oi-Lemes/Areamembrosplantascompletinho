@@ -4,6 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import { useUser } from '@/contexts/UserContext';
 import { PixModal } from '@/components/PixModal';
 
+// --- CONFIGURAÇÃO DE BASTIDORES ---
+// Mude para 'false' quando quiser ativar o pagamento novamente.
+const FREE_NINA_BETA = true;
+
 // --- Interface PixData ---
 interface PixData {
     pix_qr_code: string;
@@ -298,10 +302,16 @@ export default function ChatbotNina() {
 
     // --- BUTTON CLICK LOGIC (PAYWALL) ---
     const handleButtonClick = () => {
-        if (user?.plan === 'basic') {
-            handleUnlockClick();
-        } else {
+        // LÓGICA DE ACESSO:
+        // Se estiver em modo BETA (Grátis) OU Usuário tiver plano superior/acesso
+        // Abre o chat direto. Caso contrário, pede PIX.
+
+        const hasAccess = FREE_NINA_BETA || user?.plan !== 'basic';
+
+        if (hasAccess) {
             setIsOpen(prev => !prev);
+        } else {
+            handleUnlockClick();
         }
     };
 
@@ -327,8 +337,8 @@ export default function ChatbotNina() {
                                 alt="Chat com a Nina"
                                 className="w-full h-full rounded-full object-cover border-2 border-white/50"
                             />
-                            {/* Cadeado se for Básico */}
-                            {user?.plan === 'basic' && (
+                            {/* Cadeado se for Básico E NÃO FOR BETA GRÁTIS */}
+                            {!FREE_NINA_BETA && user?.plan === 'basic' && (
                                 <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
