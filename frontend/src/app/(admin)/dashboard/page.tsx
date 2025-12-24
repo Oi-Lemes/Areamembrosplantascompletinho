@@ -97,9 +97,9 @@ const PRODUCTS = {
     title: 'Plano Ultra'
   },
   live: {
-    hash: 'prod_cb02db3516be7ede', // Live Dr José Nakamura (Paradise)
+    hash: 'prod_cb02db3516be7ede', // Live Dra Maria Silva (Paradise)
     amount: 6700,
-    title: 'Dr José Nakamura'
+    title: 'Dra Maria Silva'
   },
   nina: {
     hash: 'prod_0d6f903b6855c714', // Chatbot Nina (Paradise)
