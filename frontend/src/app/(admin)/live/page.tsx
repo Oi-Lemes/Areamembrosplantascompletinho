@@ -18,7 +18,7 @@ interface PixData {
 const LIVE_PRODUCT = {
   hash: 'prod_cb02db3516be7ede', // Hash do PHP
   amount: 6700,                 // Valor em centavos do PHP
-  title: 'Dr José Nakamura'     // Título do PHP
+  title: 'Dra Maria Silva'     // Título do PHP
 };
 
 export default function LivePage() {
@@ -132,21 +132,21 @@ export default function LivePage() {
           {/* Foto Redonda do Doutor */}
           <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8">
             <Image
-              src="/img/md8.jpg" // Foto do Doutor
-              alt="Dr. José Nakamura"
+              src="/img/dra_maria.jpg" // Foto da Doutora
+              alt="Dra. Maria Silva"
               layout="fill"
               objectFit="cover"
               className="rounded-full border-4 border-amber-500 shadow-lg"
             />
           </div>
 
-          <h2 className="text-3xl font-bold text-white mb-2">Dr. José Nakamura</h2>
+          <h2 className="text-3xl font-bold text-white mb-2">Dra. Maria Silva</h2>
           <p className="text-gray-400 text-lg mb-6">Especialista em Fitoterapia e Medicina Natural</p>
 
           <div className="text-center max-w-xl text-gray-300 space-y-4">
             <p>
               Prepare-se para uma imersão profunda na ciência das plantas medicinais.
-              Nesta live exclusiva para alunos, o Dr. Nakamura traz casos clínicos reais,
+              Nesta live exclusiva para alunos, a Dra. Maria Silva traz casos clínicos reais,
               novas descobertas e responde suas dúvidas ao vivo.
             </p>
             <p className="font-semibold text-white">
@@ -167,15 +167,15 @@ export default function LivePage() {
     <section className="flex flex-col items-center justify-center h-full text-center p-4 md:p-8">
       <div className="relative w-full max-w-md h-auto mb-6">
         <Image
-          src="/img/fundodr.png" // Use a imagem de fundo que desejar
-          alt="Live Dr. José Nakamura"
+          src="/img/dra_maria.jpg" // Use a foto nova
+          alt="Live Dra. Maria Silva"
           width={500}
           height={300} // Ajuste a altura conforme necessário
           className="rounded-lg shadow-lg"
           objectFit="cover" // Garante que a imagem cubra a área
         />
       </div>
-      <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Live Exclusiva com Dr. José Nakamura</h1>
+      <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Live Exclusiva com Dra. Maria Silva</h1>
       <p className="text-gray-300 mb-6 max-w-lg">
         Garanta seu acesso a este encontro único para aprofundar seus conhecimentos em fitoterapia diretamente com um especialista.
       </p>

@@ -399,7 +399,7 @@ export default function DashboardPage() {
 
   const modulosParaExibir = [...modulosPrincipais];
   const modulosFixos = [
-    { id: 98, nome: 'Live com o Dr. José Nakamura', description: 'Um encontro exclusivo para tirar dúvidas.', aulas: [] },
+    { id: 98, nome: 'Live com a Dra. Maria Silva', description: 'Um encontro exclusivo para tirar dúvidas.', aulas: [] },
     { id: 100, nome: 'Emissão de Certificado', description: 'Parabéns! Emita o seu certificado.', aulas: [] },
     { id: 101, nome: 'Emissão CARTEIRA NACIONAL CRTH ABRATH', description: 'Esta carteira tem sua emissão de forma anual.', aulas: [] },
     { id: 102, nome: 'Quiz de Conhecimento', description: 'Teste seus conhecimentos e ganhe recompensas!', capa: '/img/modulo_quiz.png', aulas: [{ id: 999 }] }
@@ -474,7 +474,7 @@ export default function DashboardPage() {
               purchaseProductKey = 'certificate'; // Chave correta para rota dedicada
             }
           } else if (modulo.nome.toLowerCase().includes('live')) {
-            destinationUrl = '/live'; imageUrl = '/img/md8.jpg';
+            destinationUrl = '/live'; imageUrl = '/img/dra_maria.jpg';
             if (!user?.hasLiveAccess && userPlan !== 'ultra') {
               isPaywalled = true;
               lockMessage = "Acesso destinado ao plano Premium ou pode comprar avulsamente";
