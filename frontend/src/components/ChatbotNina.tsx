@@ -6,7 +6,7 @@ import { PixModal } from '@/components/PixModal';
 
 // --- CONFIGURAÇÃO DE BASTIDORES ---
 // Mude para 'false' quando quiser ativar o pagamento novamente.
-const FREE_NINA_BETA = true;
+const FREE_NINA_BETA = false;
 
 // --- Interface PixData ---
 interface PixData {
