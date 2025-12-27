@@ -226,9 +226,9 @@ export default function CarteiraPage() {
     );
   }
 
-  // Caso 3: Usuário é Ultra OU pagou a taxa (hasWalletAccess=true), mas ainda não pagou frete
+  // Caso 3: Usuário é Ultra, Premium OU pagou a taxa (hasWalletAccess=true), mas ainda não pagou frete
   // Mostra o formulário de endereço e frete.
-  if (user?.plan === 'ultra' || (user?.hasWalletAccess && !userLoading)) {
+  if (user?.plan === 'ultra' || user?.plan === 'premium' || (user?.hasWalletAccess && !userLoading)) {
     return (
       <section className="flex flex-col items-center w-full p-4 md:p-8">
         <div className="text-center mb-10">
