@@ -1,0 +1,17 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    # Executa a cada 14 minutos (Render dorme em 15min)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Permite rodar manualmente pelo site do GitHub
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake up Render App
+        run: |
+          URL="https://areamembrosplantascompletinho.onrender.com"
+          echo "Pinging $URL..."
+          curl -I $URL || echo "Falha ao pingar (esperado se for 404/401, mas acorda o app)"
