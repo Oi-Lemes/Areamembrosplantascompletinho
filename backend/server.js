@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-// Force Redeploy: 2025-12-27T06:35:00
+// Force Redeploy: 2025-12-30T14:30:00
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -290,7 +290,15 @@ app.post('/auth/login-phone', async (req, res) => {
     if (!cleanPhone || cleanPhone.length < 10) return res.status(400).json({ error: 'Número inválido.' });
 
     try {
-        const user = await prisma.user.findFirst({ where: { phone: cleanPhone } });
+        // Tenta encontrar com ou sem o 55 (Brasil)
+        const user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phone: cleanPhone },
+                    { phone: `55${cleanPhone}` }
+                ]
+            }
+        });
         if (!user) return res.status(404).json({ error: 'Usuário não encontrado. Você já realizou a compra?' });
         if (user.plan === 'banned' || user.status === 'refunded') return res.status(403).json({ error: 'Acesso revogado.' });
 
