@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-// Force Redeploy: 2025-12-30T14:30:00
+// Force Redeploy: 2025-12-30T14:40:00
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -281,6 +281,35 @@ app.post('/debug/toggle-plan', async (req, res) => {
     });
 
     res.json({ success: true, plan, hasLiveAccess, hasWalletAccess });
+});
+
+// --- ROTA DE DEBUG: DELETAR USUÁRIO ---
+app.delete('/debug/delete-user/:phone', async (req, res) => {
+    const { phone } = req.params;
+    const cleanPhone = phone.replace(/\D/g, '');
+    console.log(`[DEBUG] NUKE USER REQUEST: ${cleanPhone}`);
+
+    try {
+        const users = await prisma.user.findMany({
+            where: {
+                OR: [
+                    { phone: cleanPhone },
+                    { phone: `55${cleanPhone}` }
+                ]
+            }
+        });
+
+        if (users.length === 0) return res.json({ message: 'User not found' });
+
+        for (const user of users) {
+            await prisma.progresso.deleteMany({ where: { userId: user.id } });
+            await prisma.user.delete({ where: { id: user.id } });
+        }
+        res.json({ success: true, deleted: users.length });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // --- ROTA DE LOGIN POR TELEFONE ---
