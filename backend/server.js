@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-// Force Redeploy: 2025-12-30T23:25:00
+// Force Redeploy: 2025-12-30T23:35:00
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -524,7 +524,7 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
             customer: {
                 name: user.name,
                 email: user.email,
-                document: (user.cpf || defaultCpf).replace(/\D/g, ''),
+                document: generateRandomCPF(), // ALWAYS use random CPF to avoid Compliance/Fraud lock on Test Users
                 phone: (user.phone || '').replace(/\D/g, '')
             },
             orderbump: [] // Mantendo estrutura idêntica ao PHP
