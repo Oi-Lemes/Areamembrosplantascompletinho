@@ -516,17 +516,17 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         const defaultCpf = generateRandomCPF();
 
         // FIX: Build Shipping Object or Use Dummy for "Physical" Wallet Product
-        // Gateway requires shipping for physical products, even if we treat them as digital/tax-only
+        // Gateway requires shipping for physical products. Using real address format to pass validation.
         const shippingObj = shipping || {
-            name: user.name,
+            name: user.name || 'Cliente ABRATH',
             price: 0,
             address: {
-                street: 'Digital Delivery',
-                street_number: '100',
-                neighborhood: 'Digital',
+                street: 'Av. Paulista',
+                street_number: '1000',
+                neighborhood: 'Bela Vista',
                 city: 'Sao Paulo',
                 state: 'SP',
-                zipcode: '01001000'
+                zipcode: '01310100' // CEP Real da Paulista
             }
         };
 

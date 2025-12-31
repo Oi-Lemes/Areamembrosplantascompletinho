@@ -6,11 +6,11 @@ async function debugPix() {
     const paradiseUrl = 'https://multi.paradisepags.com/api/v1/transaction.php';
     const apiKey = 'sk_5801a6ec5051bf1cf144155ddada51120b2d1dda4d03cb2df454fb4eab9a78a9'; // Hardcoded in server.js
 
-    // Dados do Produto LIVE (Teste Comparativo)
-    const productHash = 'prod_cb02db3516be7ede'; // Live Hash
-    const amount = 6700; // R$ 67,00
+    // Dados do Produto Carteira
+    const productHash = 'prod_375f8ceb7a4cffcc';
+    const amount = 2700; // R$ 27,00
 
-    // Gerar dados aleatórios para evitar Compliance/Fraude
+    // Geradores de Dados Aleatórios
     const randomCPF = () => {
         const rnd = (n) => Math.round(Math.random() * n);
         const mod = (base, div) => Math.round(base - Math.floor(base / div) * div);
@@ -24,8 +24,36 @@ async function debugPix() {
         return `${n.join('')}${d1}${d2}`;
     };
 
+    const randomPhone = () => {
+        const ddd = Math.floor(Math.random() * 80) + 11;
+        const num = Math.floor(Math.random() * 90000000) + 10000000;
+        return `${ddd}9${num}`;
+    };
+
+    const randomName = () => {
+        const names = ['Ana', 'Bruno', 'Carlos', 'Daniela', 'Eduardo', 'Fernanda', 'Gabriel', 'Helena'];
+        const surnames = ['Silva', 'Santos', 'Oliveira', 'Souza', 'Pereira', 'Lima', 'Ferreira', 'Costa'];
+        return `${names[Math.floor(Math.random() * names.length)]} ${surnames[Math.floor(Math.random() * surnames.length)]}`;
+    };
+
     const cpf = randomCPF();
-    const email = `debug.user.${Date.now()}@test.com`;
+    const phone = randomPhone();
+    const name = randomName();
+    const email = `teste.pagamento.${Date.now()}@gmail.com`;
+
+    // Shipping Dummy Strategy
+    const shippingObj = {
+        name: name,
+        price: 1500, // R$ 15,00 (Teste de Frete Pago)
+        address: {
+            street: 'Rua Principal',
+            street_number: Math.floor(Math.random() * 1000).toString(),
+            neighborhood: 'Centro',
+            city: 'Sao Paulo',
+            state: 'SP',
+            zipcode: '01001000'
+        }
+    };
 
     const payload = {
         amount: amount,
@@ -34,11 +62,12 @@ async function debugPix() {
         checkoutUrl: 'https://areamembros.saberesdafloresta.site',
         productHash: productHash,
         customer: {
-            name: 'Debug User Random',
+            name: name,
             email: email,
             document: cpf,
-            phone: '11999999999'
+            phone: phone
         },
+        shipping: shippingObj,
         orderbump: []
     };
 
