@@ -232,7 +232,7 @@ export default function CarteiraPage() {
     return (
       <section className="flex flex-col items-center w-full p-4 md:p-8">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">Emissão de Carteira Nacional CRTH ABRATH</h1>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white">Emissão de Carteira Nacional ABRATH</h1>
           <p className="text-gray-300 mt-2 max-w-2xl mx-auto">
             {user.plan === 'ultra' ? 'Como membro Ultra, a taxa de emissão é por nossa conta!' : (user.plan === 'premium' ? 'Membros Premium têm isenção da taxa de emissão.' : 'Taxa de emissão paga!')}
             Agora, preencha os seus dados de entrega e pague apenas o frete para receber a sua carteira.

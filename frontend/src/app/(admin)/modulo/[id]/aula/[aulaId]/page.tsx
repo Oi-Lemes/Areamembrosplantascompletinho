@@ -247,7 +247,7 @@ export default function AulaPage() {
           </button>
           <button
             onClick={handleProximo}
-            disabled={(isUltimaAulaDoModulo && isModuloConcluido) || isRedirecting}
+            disabled={isRedirecting}
             className="w-full sm:w-auto px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1 flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30 disabled:bg-gray-500 disabled:cursor-not-allowed disabled:shadow-none disabled:translate-y-0"
           >
             <span>{isUltimaAulaDoModulo ? 'Finalizar Módulo' : 'Próxima Aula'}</span>

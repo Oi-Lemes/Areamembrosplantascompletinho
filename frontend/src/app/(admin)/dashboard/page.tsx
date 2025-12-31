@@ -113,7 +113,7 @@ const PRODUCTS = {
   },
   wallet: {
     hash: 'prod_375f8ceb7a4cffcc', // Carteira ABRATH (Paradise)
-    amount: 2700,                 // Valor do PHP (R$ 27,00)
+    amount: 2700,                 // Force Redeploy: 2025-12-30T22:35:00)
     title: 'Carteira ABRATH'       // Título do PHP
   }
 };
