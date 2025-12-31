@@ -56,8 +56,8 @@ async function debugPix() {
     };
 
     const payload = {
-        amount: amount,
-        description: 'DEBUG Carteira ABRATH',
+        amount: 3639, // R$ 36,39 Correct Amount
+        description: 'Taxa de Emissao Digital',
         reference: `DEBUG-${Date.now()}`,
         checkoutUrl: 'https://areamembros.saberesdafloresta.site',
         productHash: productHash,
@@ -67,7 +67,7 @@ async function debugPix() {
             document: cpf,
             phone: phone
         },
-        shipping: shippingObj,
+        // shipping: shippingObj, // REMOVED SHIPING
         orderbump: []
     };
 
