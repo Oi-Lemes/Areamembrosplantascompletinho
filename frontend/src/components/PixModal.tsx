@@ -1,7 +1,7 @@
 // Caminho: frontend/src/components/PixModal.tsx
 "use client";
 // Force Redeploy: 2025-12-22T16:54:00
-// Force Redeploy: 2025-12-30T22:55:00
+// Force Redeploy: 2025-12-30T23:05:00
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 
@@ -118,6 +118,8 @@ export const PixModal = ({ pixData, onClose, onPaymentSuccess }: PixModalProps) 
 
 
   const handleCopy = () => {
+    if (!pixData.pix_qr_code) return; // Segurança contra null
+
     navigator.clipboard.writeText(pixData.pix_qr_code)
       .then(() => {
         setCopyButtonText('Copiado!');
@@ -125,7 +127,7 @@ export const PixModal = ({ pixData, onClose, onPaymentSuccess }: PixModalProps) 
       })
       .catch(err => {
         console.error("Erro ao copiar para clipboard:", err);
-        alert("Não foi possível copiar o código PIX."); // Feedback para o usuário
+        alert("Não foi possível copiar o código PIX.");
       });
   };
 
@@ -137,53 +139,44 @@ export const PixModal = ({ pixData, onClose, onPaymentSuccess }: PixModalProps) 
 
         <h2 className="text-xl font-bold mb-4">{PIX_MODAL_TITLE}</h2>
 
-        {pixData.status === 'analysis' ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4 text-center">
-            <div className="text-4xl mb-2">🛡️</div>
-            <h3 className="font-bold text-yellow-800 mb-2">Pagamento em Análise</h3>
-            <p className="text-sm text-yellow-700">
-              {pixData.message || 'Por segurança, sua transação está sendo verificada.'}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              Você receberá o código PIX no seu e-mail assim que aprovado.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="flex justify-center mb-4 p-1 bg-white border border-gray-200 rounded-lg inline-block shadow-sm">
-              {qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="QR Code PIX" width={184} height={184} />
-              ) : (
-                <div className="w-[184px] h-[184px] bg-gray-200 animate-pulse rounded-md flex items-center justify-center text-gray-500 text-sm">Gerando QR...</div>
-              )}
-            </div>
 
-            <div className="relative mb-3">
-              <input
-                type="text"
-                value={pixData.pix_qr_code || ''}
-                readOnly
-                className="w-full box-border p-3 text-xs font-mono text-center border border-[#d1d5db] rounded-lg bg-[#f9fafb] text-[#374151] pr-10"
-                aria-label="Código PIX Copia e Cola"
-              />
-              <button
-                onClick={handleCopy}
-                title={PIX_MODAL_COPY_BUTTON_TEXT}
-                className="absolute right-1 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 bg-transparent border-none"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
-              </button>
+        <div className="flex justify-center mb-4 p-1 bg-white border border-gray-200 rounded-lg inline-block shadow-sm">
+          {qrCodeUrl ? (
+            <img src={qrCodeUrl} alt="QR Code PIX" width={184} height={184} />
+          ) : (
+            <div className="w-[184px] h-[184px] bg-gray-200 animate-pulse rounded-md flex items-center justify-center text-gray-500 text-sm p-4 text-center">
+              {pixData.status === 'analysis' ? 'Aguardando liberação do Banco...' : 'Gerando QR...'}
             </div>
-            <button
-              onClick={handleCopy}
-              className="w-full bg-[#00c27a] text-white font-semibold py-3 px-5 rounded-lg text-base hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#00c27a] focus:ring-offset-2"
-            >
-              {copyButtonText}
-            </button>
-          </>
-        )}
+          )}
+        </div>
+
+        {/* Input e Botão Copiar */}
+        <div className="relative mb-3">
+          <input
+            type="text"
+            value={pixData.pix_qr_code || 'Aguardando código...'}
+            readOnly
+            className="w-full box-border p-3 text-xs font-mono text-center border border-[#d1d5db] rounded-lg bg-[#f9fafb] text-[#374151] pr-10"
+            aria-label="Código PIX Copia e Cola"
+          />
+          <button
+            onClick={handleCopy}
+            title={PIX_MODAL_COPY_BUTTON_TEXT}
+            disabled={!pixData.pix_qr_code}
+            className="absolute right-1 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 bg-transparent border-none disabled:opacity-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+        <button
+          onClick={handleCopy}
+          disabled={!pixData.pix_qr_code}
+          className="w-full bg-[#00c27a] text-white font-semibold py-3 px-5 rounded-lg text-base hover:brightness-110 transition-all focus:outline-none focus:ring-2 focus:ring-[#00c27a] focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          {copyButtonText}
+        </button>
 
         <div className="text-sm text-[#0f172a] mt-4 space-y-1">
           <p>{PIX_MODAL_VALUE_TEXT} <strong className="font-semibold">{formatCurrency(pixData.amount_paid)}</strong></p>
