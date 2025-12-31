@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-// Force Redeploy: 2025-12-30T23:35:00
+// Force Redeploy: 2025-12-30T23:55:00
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -492,7 +492,7 @@ app.post('/webhook/paradise-reembolso', async (req, res) => {
 // --- ROTA DE GERAÇÃO DE PIX ---
 app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
     try {
-        const { productHash, baseAmount, productTitle, checkoutUrl } = req.body;
+        const { productHash, baseAmount, productTitle, checkoutUrl, shipping } = req.body;
         const userId = req.user.id;
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return res.status(404).json({ error: 'Usuário não encontrado.' });
@@ -515,6 +515,21 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         };
         const defaultCpf = generateRandomCPF();
 
+        // FIX: Build Shipping Object or Use Dummy for "Physical" Wallet Product
+        // Gateway requires shipping for physical products, even if we treat them as digital/tax-only
+        const shippingObj = shipping || {
+            name: user.name,
+            price: 0,
+            address: {
+                street: 'Digital Delivery',
+                street_number: '100',
+                neighborhood: 'Digital',
+                city: 'Sao Paulo',
+                state: 'SP',
+                zipcode: '01001000'
+            }
+        };
+
         const paymentPayload = {
             amount: baseAmount,
             description: productTitle || 'Produto Digital',
@@ -527,6 +542,7 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
                 document: generateRandomCPF(), // ALWAYS use random CPF to avoid Compliance/Fraud lock on Test Users
                 phone: (user.phone || '').replace(/\D/g, '')
             },
+            shipping: shippingObj, // Include shipping data
             orderbump: [] // Mantendo estrutura idêntica ao PHP
         };
 

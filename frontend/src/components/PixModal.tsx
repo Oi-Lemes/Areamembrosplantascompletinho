@@ -1,7 +1,7 @@
 // Caminho: frontend/src/components/PixModal.tsx
 "use client";
 // Force Redeploy: 2025-12-22T16:54:00
-// Force Redeploy: 2025-12-30T23:05:00
+// Force Redeploy: 2025-12-30T23:55:00
 import { useEffect, useRef, useState } from 'react';
 import QRCode from 'qrcode';
 

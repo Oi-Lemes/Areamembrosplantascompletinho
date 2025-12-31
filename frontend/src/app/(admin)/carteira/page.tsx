@@ -94,7 +94,7 @@ export default function CarteiraPage() {
     }
   };
 
-  const handleOpenPixModal = async (productKey: keyof typeof PRODUCTS) => {
+  const handleOpenPixModal = async (productKey: keyof typeof PRODUCTS, shippingData?: any) => {
     const product = PRODUCTS[productKey];
     if (!user || !product) {
       alert("Utilizador não autenticado ou produto inválido.");
@@ -109,7 +109,8 @@ export default function CarteiraPage() {
       productHash: product.hash,
       baseAmount: product.amount,
       productTitle: product.title,
-      checkoutUrl: window.location.href
+      checkoutUrl: window.location.href,
+      shipping: shippingData || null // Envia dados de entrega se existirem
     };
 
     try {
@@ -167,7 +168,21 @@ export default function CarteiraPage() {
     }
 
     const productKey = shippingMethod === 'pac' ? 'pac' : 'express';
-    handleOpenPixModal(productKey);
+
+    const shippingPayload = {
+      name: recipientName,
+      price: PRODUCTS[productKey].amount,
+      address: {
+        street: address.street,
+        street_number: address.number,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state,
+        zipcode: cep.replace(/\D/g, '')
+      }
+    };
+
+    handleOpenPixModal(productKey, shippingPayload);
   };
 
   // ----- Renderização -----
