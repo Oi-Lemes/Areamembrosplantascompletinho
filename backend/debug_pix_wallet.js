@@ -31,7 +31,7 @@ async function debugPix() {
         amount: amount,
         description: 'DEBUG Carteira ABRATH',
         reference: `DEBUG-${Date.now()}`,
-        checkoutUrl: 'https://debug.local',
+        checkoutUrl: 'https://areamembros.saberesdafloresta.site',
         productHash: productHash,
         customer: {
             name: 'Debug User Random',

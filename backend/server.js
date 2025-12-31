@@ -541,9 +541,6 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         const qrCode = transaction.qr_code || transaction.pix_qr_code || transaction.qrcode_text;
         const expiration = transaction.expires_at || transaction.expiration_date;
 
-        const qrCode = transaction.qr_code || transaction.pix_qr_code || transaction.qrcode_text;
-        const expiration = transaction.expires_at || transaction.expiration_date;
-
         // SE SUCESSO mas SEM QR CODE (Compliance/Análise)
         if (!qrCode && (data.status === 'success' || data.message?.includes('análise'))) {
             return res.json({
