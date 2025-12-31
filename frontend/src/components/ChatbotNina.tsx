@@ -454,6 +454,7 @@ export default function ChatbotNina() {
             {/* --- RENDERIZAÇÃO DO MODAL PIX --- */}
             {showPaymentModal && pixData && (
                 <PixModal
+                    isOpen={showPaymentModal}
                     pixData={pixData}
                     onClose={() => setShowPaymentModal(false)}
                     onPaymentSuccess={handlePaymentSuccess}
