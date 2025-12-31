@@ -19,7 +19,7 @@ const PRODUCTS = {
   walletAccess: {
     hash: 'prod_375f8ceb7a4cffcc',
     amount: 2700,
-    title: 'Taxa de Emissão da Carteira ABRATH'
+    title: 'Taxa de Emissão Digital ABRATH'
   },
   pac: {
     hash: 'prod_3aeba29f077583c1',
