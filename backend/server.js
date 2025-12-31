@@ -1001,6 +1001,18 @@ app.get('/fix-content-db', async (req, res) => {
     }
 });
 
+// --- KEEP ALIVE / HEALTH CHECK ---
+app.get('/health', (req, res) => res.status(200).send('OK'));
+
+// Self-Ping to keep Render awake (Every 14 mins)
+if (process.env.NODE_ENV === 'production' || process.env.RENDER_EXTERNAL_URL) {
+    const SELF_URL = process.env.RENDER_EXTERNAL_URL || 'https://backend-plants-image-latest.onrender.com';
+    setInterval(() => {
+        console.log(`⏰ Keep-Alive Ping para ${SELF_URL}/health`);
+        axios.get(`${SELF_URL}/health`).catch(err => console.error('Keep-Alive Error:', err.message));
+    }, 14 * 60 * 1000); // 14 minutos
+}
+
 app.listen(PORT, () => {
     console.log(`\n🚀 SERVIDOR REAL (PRISMA) RODANDO NA PORTA ${PORT}`);
     console.log(`💳 Webhook Paradise ativo em /webhook/paradise`);
