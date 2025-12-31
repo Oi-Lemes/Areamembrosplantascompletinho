@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { PixModal } from '@/components/PixModal';
-import { DownloadIcon } from '@/components/Icons'; // Assumindo que você tem um componente Icons
+import { DownloadIcon } from '@/components/Icons';
+import { IS_DEV_BYPASS } from '@/config/dev-bypass';
 
 // Interface PixData
 interface PixData {

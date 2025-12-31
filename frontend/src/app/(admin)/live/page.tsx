@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { PixModal } from '@/components/PixModal';
+import { IS_DEV_BYPASS } from '@/config/dev-bypass';
 import Image from 'next/image';
 
 // Interface PixData (igual aos outros ficheiros)
@@ -117,101 +118,94 @@ export default function LivePage() {
     });
   };
 
-  import { IS_DEV_BYPASS } from '@/config/dev-bypass';
 
-  // ...
 
-  export default function LivePage() {
-    const { user, loading: userLoading, refetchUser } = useUser();
+  const nextLiveDate = getNextLiveDate();
 
-    // ... (state definitions)
-
-    const nextLiveDate = getNextLiveDate();
-
-    // Se o usuário TEM acesso (Ultra OU comprou avulso OU BYPASS ativado)
-    if (user?.hasLiveAccess || user?.plan === 'ultra' || IS_DEV_BYPASS) {
-      return (
-        <section className="flex flex-col items-center w-full p-4 md:p-8">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">Encontro Semanal</h1>
-            <p className="text-xl text-amber-400 font-semibold mb-2">Próxima Live: {nextLiveDate}</p>
-          </div>
-
-          <div className="flex flex-col items-center justify-center bg-gray-900/50 p-10 rounded-2xl shadow-2xl border border-gray-800 max-w-3xl w-full">
-            {/* Foto Redonda do Doutor */}
-            <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8">
-              <Image
-                src="/img/dra_maria.jpg" // Foto da Doutora
-                alt="Dra. Maria Silva"
-                layout="fill"
-                objectFit="cover"
-                className="rounded-full border-4 border-amber-500 shadow-lg"
-              />
-            </div>
-
-            <h2 className="text-3xl font-bold text-white mb-2">Dra. Maria Silva</h2>
-            <p className="text-gray-400 text-lg mb-6">Especialista em Fitoterapia e Medicina Natural</p>
-
-            <div className="text-center max-w-xl text-gray-300 space-y-4">
-              <p>
-                Prepare-se para uma imersão profunda na ciência das plantas medicinais.
-                Nesta live exclusiva para alunos, a Dra. Maria Silva traz casos clínicos reais,
-                novas descobertas e responde suas dúvidas ao vivo.
-              </p>
-              <p className="font-semibold text-white">
-                Link de acesso será liberado aqui 15 minutos antes do início.
-              </p>
-            </div>
-
-            <button className="mt-8 px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-lg transition-transform transform hover:scale-105 shadow-amber-500/20 shadow-xl cursor-not-allowed opacity-80">
-              Aguardando Início...
-            </button>
-          </div>
-        </section>
-      );
-    }
-
-    // Se o usuário NÃO tem acesso
+  // Se o usuário TEM acesso (Ultra OU comprou avulso OU BYPASS ativado)
+  if (user?.hasLiveAccess || user?.plan === 'ultra' || IS_DEV_BYPASS) {
     return (
-      <section className="flex flex-col items-center justify-center h-full text-center p-4 md:p-8">
-        <div className="relative w-full max-w-md h-auto mb-6">
-          <Image
-            src="/img/dra_maria.jpg" // Use a foto nova
-            alt="Live Dra. Maria Silva"
-            width={500}
-            height={300} // Ajuste a altura conforme necessário
-            className="rounded-lg shadow-lg"
-            objectFit="cover" // Garante que a imagem cubra a área
-          />
-        </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Live Exclusiva com Dra. Maria Silva</h1>
-        <p className="text-gray-300 mb-6 max-w-lg">
-          Garanta seu acesso a este encontro único para aprofundar seus conhecimentos em fitoterapia diretamente com um especialista.
-        </p>
-        <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-sm w-full">
-          <p className="text-lg mb-1 text-gray-300">Acesso único por apenas</p>
-          <p className="text-4xl font-bold text-blue-400 mb-6">
-            {(LIVE_PRODUCT.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-          </p>
-          <button
-            onClick={handleOpenPixModal}
-            disabled={isLoadingPix}
-            className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
-          >
-            {isLoadingPix ? 'Gerando PIX...' : 'Liberar Acesso com PIX'}
-          </button>
-          {paymentError && <p className="text-red-500 text-sm mt-4">{paymentError}</p>}
+      <section className="flex flex-col items-center w-full p-4 md:p-8">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">Encontro Semanal</h1>
+          <p className="text-xl text-amber-400 font-semibold mb-2">Próxima Live: {nextLiveDate}</p>
         </div>
 
-        {/* Renderização do Modal */}
-        {isModalOpen && pixData && (
-          <PixModal
-            isOpen={isModalOpen}
-            pixData={pixData}
-            onClose={() => setIsModalOpen(false)}
-            onPaymentSuccess={handlePaymentSuccess}
-          />
-        )}
+        <div className="flex flex-col items-center justify-center bg-gray-900/50 p-10 rounded-2xl shadow-2xl border border-gray-800 max-w-3xl w-full">
+          {/* Foto Redonda do Doutor */}
+          <div className="relative w-48 h-48 md:w-64 md:h-64 mb-8">
+            <Image
+              src="/img/dra_maria.jpg" // Foto da Doutora
+              alt="Dra. Maria Silva"
+              layout="fill"
+              objectFit="cover"
+              className="rounded-full border-4 border-amber-500 shadow-lg"
+            />
+          </div>
+
+          <h2 className="text-3xl font-bold text-white mb-2">Dra. Maria Silva</h2>
+          <p className="text-gray-400 text-lg mb-6">Especialista em Fitoterapia e Medicina Natural</p>
+
+          <div className="text-center max-w-xl text-gray-300 space-y-4">
+            <p>
+              Prepare-se para uma imersão profunda na ciência das plantas medicinais.
+              Nesta live exclusiva para alunos, a Dra. Maria Silva traz casos clínicos reais,
+              novas descobertas e responde suas dúvidas ao vivo.
+            </p>
+            <p className="font-semibold text-white">
+              Link de acesso será liberado aqui 15 minutos antes do início.
+            </p>
+          </div>
+
+          <button className="mt-8 px-8 py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-full text-lg transition-transform transform hover:scale-105 shadow-amber-500/20 shadow-xl cursor-not-allowed opacity-80">
+            Aguardando Início...
+          </button>
+        </div>
       </section>
     );
   }
+
+  // Se o usuário NÃO tem acesso
+  return (
+    <section className="flex flex-col items-center justify-center h-full text-center p-4 md:p-8">
+      <div className="relative w-full max-w-md h-auto mb-6">
+        <Image
+          src="/img/dra_maria.jpg" // Use a foto nova
+          alt="Live Dra. Maria Silva"
+          width={500}
+          height={300} // Ajuste a altura conforme necessário
+          className="rounded-lg shadow-lg"
+          objectFit="cover" // Garante que a imagem cubra a área
+        />
+      </div>
+      <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">Live Exclusiva com Dra. Maria Silva</h1>
+      <p className="text-gray-300 mb-6 max-w-lg">
+        Garanta seu acesso a este encontro único para aprofundar seus conhecimentos em fitoterapia diretamente com um especialista.
+      </p>
+      <div className="bg-gray-800 p-6 rounded-lg shadow-md max-w-sm w-full">
+        <p className="text-lg mb-1 text-gray-300">Acesso único por apenas</p>
+        <p className="text-4xl font-bold text-blue-400 mb-6">
+          {(LIVE_PRODUCT.amount / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+        </p>
+        <button
+          onClick={handleOpenPixModal}
+          disabled={isLoadingPix}
+          className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+        >
+          {isLoadingPix ? 'Gerando PIX...' : 'Liberar Acesso com PIX'}
+        </button>
+        {paymentError && <p className="text-red-500 text-sm mt-4">{paymentError}</p>}
+      </div>
+
+      {/* Renderização do Modal */}
+      {isModalOpen && pixData && (
+        <PixModal
+          isOpen={isModalOpen}
+          pixData={pixData}
+          onClose={() => setIsModalOpen(false)}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+    </section>
+  );
+}

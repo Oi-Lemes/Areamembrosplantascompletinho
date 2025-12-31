@@ -4,7 +4,8 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { PixModal } from '@/components/PixModal';
-import { useRouter } from 'next/navigation'; // --- ALTERAÇÃO 1: Importar o useRouter
+import { useRouter } from 'next/navigation';
+import { IS_DEV_BYPASS } from '@/config/dev-bypass';
 
 // Interface PixData
 interface PixData {
