@@ -1,6 +1,6 @@
 
 import 'dotenv/config';
-// Force Redeploy: 2025-12-30T23:05:00
+// Force Redeploy: 2025-12-30T23:15:00
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
@@ -545,6 +545,8 @@ app.post('/gerar-pix-paradise', authenticateToken, async (req, res) => {
         if (!qrCode && (data.status === 'success' || data.message?.includes('análise'))) {
             return res.json({
                 pix: { pix_qr_code: null, expiration_date: null },
+                amount_paid: baseAmount,
+                hash: transaction.id || transaction.hash || 'NOHASH',
                 status: 'analysis',
                 message: data.message || 'Pagamento em análise de segurança. O PIX será enviado por e-mail.'
             });
